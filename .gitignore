@@ -1,0 +1,52 @@
+# Build Binaries
+bin/
+
+# Build outputs
+build/
+
+# Test Fakes
+fakes/
+
+# Solutions
+_solutions/
+
+# Temporary Files
+tmp/
+
+# Doxygen Builds
+documentation/html/
+documentation/latex/
+
+# Object Files
+*.o
+
+# Dependency Files
+*.d
+
+# Python Environments
+venv/
+
+# Python Binary Files
+*.pyc
+__pycache__
+
+# Database files
+db.sqlite3
+
+# VIM Backup\Swap files
+*~
+
+# KiCAD Backup Files
+*.kicad_pcb-bak
+*.sch-bak
+*-backups/
+
+# VS Code folders and workspace
+.vscode/
+*.code-workspace
+
+# VK temporary files
+_vk
+
+# OSX bullshit
+.DS_Store
