@@ -19,9 +19,14 @@ documentation/latex/
 
 # Executable files
 *.exe
+*.dll
 
 # Object Files
 *.o
+*.obj
+
+# External Libraries
+lib/
 
 # Dependency Files
 *.d
