@@ -17,6 +17,9 @@ tmp/
 documentation/html/
 documentation/latex/
 
+# Executable files
+*.exe
+
 # Object Files
 *.o
 
