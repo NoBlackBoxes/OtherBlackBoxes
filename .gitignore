@@ -19,6 +19,8 @@ documentation/latex/
 
 # Executable files
 *.exe
+
+# Shared Libraries
 *.dll
 
 # Object Files

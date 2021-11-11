@@ -1,6 +1,6 @@
 # Other Black Boxes
 
-> *Some "other" black boxes, which don't quite fit (yet) into the other courses*
+> *Some "other" black boxes, which don't quite fit (yet) into the other NBB courses*
 
 ## Goals
 
