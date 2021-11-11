@@ -1,6 +1,6 @@
-#include "include\main.h"
-#include "include\script.h"
-#include "include\keyboard.h"
+#include "main.h"
+#include "script.h"
+#include "keyboard.h"
 
 BOOL APIENTRY DllMain(HMODULE hInstance, DWORD reason, LPVOID lpReserved)
 {

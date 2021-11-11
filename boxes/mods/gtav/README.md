@@ -21,5 +21,11 @@ Modding GTA V (and earlier versions) relies on DLL injection to "hook" custom mo
   - And the SDK
 - Extract
 - Copy the contents of the "bin" folder to your GTA root directory
-- Add "ScriptHookV.dev" file to main folder (for reloading/unloading scripts with *Ctl+R*)
+- Add "ScriptHookV.dev" file to GTA root directory (for reloading/unloading scripts with *Ctl+R*)
+- Copy the inc/ folder contents in the SDK to a folder named external/include in the "gtav" repo
+- Copy the lib/ folder contents in the SDK to a folder named external/lib in the "gtav" repo
 
+## Build a mod (*.asi)
+- Open the "x64 native tools command prompt" (to access the MSVC C++ compiler)
+- Navigate to the source folder
+- 

@@ -1,6 +1,6 @@
 // Test ASI
 #include <windows.h>
-#include "include/natives.h" 
+#include "natives.h" 
 #define IMPORT __declspec(dllimport)
 
 BOOL APIENTRY DllMain(HMODULE hInstance, DWORD reason, LPVOID lpReserved)

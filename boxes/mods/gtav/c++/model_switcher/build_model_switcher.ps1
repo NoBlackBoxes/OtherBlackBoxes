@@ -1,4 +1,4 @@
-# Build native_trainer
+# Build model_switcher
 
 # Set environment variables
 set GTAV=C:/Program Files (x86)/Steam/steamapps/common/Grand Theft Auto V
@@ -7,7 +7,7 @@ set INCLUDE=%INCLUDE%;%ROOT%/external/include;%ROOT%/external
 set LIB=%LIB%;%ROOT%/external/lib
 
 # Compile
-cl /LD native_trainer.cpp keyboard.cpp script.cpp ScriptHookV.lib
+cl /LD model_switcher.cpp keyboard.cpp script.cpp ScriptHookV.lib
 
 # Install
-xcopy native_trainer.dll "%GTAV%/native_trainer.asi"
+xcopy model_switcher.dll "%GTAV%/model_switcher.asi"

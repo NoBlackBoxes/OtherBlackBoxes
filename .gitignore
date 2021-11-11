@@ -28,7 +28,7 @@ documentation/latex/
 *.obj
 
 # External Libraries
-lib/
+external/
 
 # Dependency Files
 *.d

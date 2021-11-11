@@ -2,8 +2,8 @@
 	F5 key		become chimp
 */
 
-#include "include/script.h"
-#include "include/keyboard.h"
+#include "script.h"
+#include "keyboard.h"
 
 #include <string>
 #include <ctime>

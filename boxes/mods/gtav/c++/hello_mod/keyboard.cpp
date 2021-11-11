@@ -4,7 +4,7 @@
 				(C) Alexander Blade 2015
 */
 
-#include "include/keyboard.h"
+#include "keyboard.h"
 
 const int KEYS_SIZE = 255;
 
