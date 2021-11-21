@@ -1,4 +1,4 @@
-# Mods :: GTAV :: Models
+# Mods :: GTAV :: Data
 
 How do I add new (or replace) models in GTA V?
 
