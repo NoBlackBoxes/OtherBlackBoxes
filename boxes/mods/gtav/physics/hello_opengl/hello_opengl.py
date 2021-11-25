@@ -1,6 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import keyboard
 
 # Define constants
 screen_width = 500
@@ -36,5 +37,10 @@ gluOrtho2D(0, screen_width, 0, screen_height)   # View matrix
 x = screen_width/2
 y = screen_height/2
 while(True):
+    # Display
     display(x,y)
+
+    # Quit?
+    if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+        break  # finishing the loop
 # FIN

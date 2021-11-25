@@ -1,6 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import keyboard
 import time
 
 # Define constants
@@ -57,6 +58,10 @@ while(True):
 
     # Display
     display(x,y)
+
+    # Quit?
+    if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+        break  # finishing the loop
 
     # Sleep
     time.sleep(0.01)
