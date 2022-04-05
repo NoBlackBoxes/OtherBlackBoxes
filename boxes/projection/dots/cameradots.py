@@ -9,7 +9,7 @@ import time
 import cv2 as cv
 
 
-capture = cv.VideoCapture(4)
+capture = cv.VideoCapture(2)
 
 if not capture.isOpened():
     print("Cannot open camera")
