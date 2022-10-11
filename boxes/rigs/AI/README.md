@@ -13,11 +13,13 @@ Case:
 
 Power Supply:
 
+Motherboard: 
+
 CPU:
 
 RAM (system memory):
 
 Storage (SSD):
 
-
+Cooling (Fan/Water)):
 
