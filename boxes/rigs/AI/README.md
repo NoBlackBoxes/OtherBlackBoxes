@@ -28,5 +28,5 @@ https://www.overclockers.co.uk/kingston-fury-beast-32gb-2x16gb-ddr5-pc5-44800c40
 Storage (SSD): Samsung 980 Pro 1TB M.2 2280 PCI-e 4.0 x4 NVMe Solid State Drive
 https://www.overclockers.co.uk/samsung-980-pro-1tb-m.2-2280-pci-e-4.0-x4-nvme-solid-state-drive-hd-248-sa.html
 
-Cooling (Fan/Water)): Phanteks Glacier One 240T30 CPU Water Cooler- 240mm + Phanteks T30 Triple Fan Pack 120mm
-https://www.overclockers.co.uk/phanteks-glacier-one-240t30-cpu-water-cooler-240mm-phanteks-t30-triple-fan-pack-120mm-bu-02x-pt.html
+Cooling (AIO Water)): Gigabyte AORUS WATERFORCE X 240 ARGB Liquid AIO Performance CPU Cooler - 240mm
+https://www.overclockers.co.uk/gigabyte-aorus-waterforce-x-240-argb-liquid-aio-performance-cpu-cooler-240mm-hs-00d-gi.html
