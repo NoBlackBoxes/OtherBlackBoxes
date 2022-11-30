@@ -27,6 +27,8 @@ python3 setup.py develop
 pip install -r requirements.txt
 pip install invisible-watermark
 pip install cutlass
+# pip uninstall torch
+# pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 
 # If using diffusers library...
 pip install --upgrade git+https://github.com/huggingface/diffusers.git transformers accelerate scipy
@@ -51,7 +53,7 @@ mkdir weights
 cd weights
 wget https://huggingface.co/stabilityai/stable-diffusion-2-base/resolve/main/512-base-ema.ckpt
 wget https://huggingface.co/stabilityai/stable-diffusion-2/resolve/main/768-v-ema.ckpt # Note: 4.9 Gigabytes
-cd ../stablediffusion
+cd ..
 ```
 
 Test model
