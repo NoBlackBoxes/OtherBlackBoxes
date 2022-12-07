@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import pyaudio
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
@@ -6,11 +7,11 @@ processor = WhisperProcessor.from_pretrained("openai/whisper-tiny.en")
 model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny.en")
 
 # Congure audio recording
-CHUNK = 4800                # Buffer size
-FORMAT = pyaudio.paInt32    # Data type
-CHANNELS = 2                # Number of channels
-RATE = 48000                # Sample rate (Hz)
-RECORD_SECONDS = 500        # Duration
+CHUNK = 1600                # Buffer size
+FORMAT = pyaudio.paInt16    # Data type
+CHANNELS = 1                # Number of channels
+RATE = 16000                # Sample rate (Hz)
+RECORD_SECONDS = 5          # Duration
 
 # Get pyaudio object
 p = pyaudio.PyAudio()
@@ -23,32 +24,28 @@ stream = p.open(format=FORMAT,
             frames_per_buffer=CHUNK) 
 
 # Append frames of data
-frames = []
+sound = np.zeros(CHANNELS * RATE * RECORD_SECONDS, dtype=np.float32)
 for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
     # Read raw data and append
-    raw_data = stream.read(CHUNK)
-    frames.append(raw_data)
+    raw_data = stream.read(CHUNK, exception_on_overflow = False)
     
     # Convert to numpy array
-    interleaved_data = np.frombuffer(raw_data, dtype=np.int16)
+    integer_data = np.frombuffer(raw_data, dtype=np.int16)
+    float_data = np.float32(integer_data)/32768.0
 
-    # Extract left and right values
-    left = interleaved_data[::2] 
-    right = interleaved_data[1::2]  
-
-    # DO SOME PROCESSING HERE #
+    # Concat
+    sound[(i *CHUNK):((i *CHUNK) + CHUNK)] = float_data
 
     # Report volume (on left)
-    print("L: {0:.2f}, R: {1:.2f}".format(np.mean(np.abs(left)), np.mean(np.abs(right))))
+    print("Volume: {0:.2f}".format(np.mean(np.abs(float_data))))
 
 # Shutdown
 stream.stop_stream()
 stream.close()
 p.terminate()
 
-
 # Extract features
-inputs = processor(ds[0]["audio"]["array"], return_tensors="pt")
+inputs = processor(sound, sampling_rate=RATE, return_tensors="pt")
 input_features = inputs.input_features
 
 # Generate IDs
