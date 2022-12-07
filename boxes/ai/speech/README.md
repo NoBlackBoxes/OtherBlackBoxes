@@ -15,8 +15,8 @@ Create (and enter) Python virtual environment
 ```bash
 mkdir venv
 cd venv
-python3 -m venv pytorch
-source pytorch/bin/activate
+python3 -m venv speech
+source speech/bin/activate
 ```
 
 Setup pytorch

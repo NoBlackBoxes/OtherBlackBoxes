@@ -15,11 +15,11 @@ Create (and enter) Python virtual environment
 ```bash
 mkdir venv
 cd venv
-python3 -m venv pytorch
-source pytorch/bin/activate
+python3 -m venv diffusion
+source diffusion/bin/activate
 ```
 
-Setup pytorch
+Setup "Diffusion" Environment
 
 ```bash
 cd ../stablediffusion
@@ -52,7 +52,8 @@ Download weights
 mkdir weights
 cd weights
 wget https://huggingface.co/stabilityai/stable-diffusion-2-base/resolve/main/512-base-ema.ckpt
-wget https://huggingface.co/stabilityai/stable-diffusion-2/resolve/main/768-v-ema.ckpt # Note: 4.9 Gigabytes
+wget https://huggingface.co/stabilityai/stable-diffusion-2/resolve/main/768-v-ema.ckpt
+# Note: 4.9 Gigabytes
 cd ..
 ```
 

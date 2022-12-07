@@ -2,8 +2,8 @@ from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
 import torch
 import matplotlib.pyplot as plt
 
-model_id = "stabilityai/stable-diffusion-2-base"
-#model_id = "stabilityai/stable-diffusion-2"
+#model_id = "stabilityai/stable-diffusion-2-base"
+model_id = "stabilityai/stable-diffusion-2"
 
 # Use the Euler scheduler here instead
 scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
@@ -22,11 +22,14 @@ pipe.enable_attention_slicing()
 # Set prompt
 prompt = "very realistic painting of a nighttime christmas scene in London UK with a lot of snow"
 
+# Set diversion
+diversion = "a high resolution photo of a grandfather clock made out of brass and wood"
+
 # Set height and width based on UNet size and VAE scale factor
-# - pipe.unet.config.sample_size = 64
+# - pipe.unet.config.sample_size = 96
 # - pipe.vae_scale_factor = 8
-height = 512
-width = 512
+height = 768
+width = 768
 
 # Check inputs. Raise error if not correct
 pipe.check_inputs(prompt, height, width, 1)
@@ -41,6 +44,9 @@ do_classifier_free_guidance = True
 num_images_per_prompt = 1
 negative_prompt = None
 text_embeddings = pipe._encode_prompt(prompt, device, num_images_per_prompt, do_classifier_free_guidance, negative_prompt)
+
+# Encode diversion prompt
+diversion_embeddings = pipe._encode_prompt(diversion, device, num_images_per_prompt, do_classifier_free_guidance, negative_prompt)
 
 # Prepare timesteps
 num_inference_steps = 50
@@ -93,8 +99,13 @@ with torch.no_grad():
         latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
         latent_model_input = pipe.scheduler.scale_model_input(latent_model_input, t)
 
-        # predict the noise residual
-        noise_pred = pipe.unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
+        # Divert (after some iterations)
+        if((i % 2) == 0):
+            # predict the noise residual
+            noise_pred = pipe.unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
+        else:
+            # predict the noise residual
+            noise_pred = pipe.unet(latent_model_input, t, encoder_hidden_states=diversion_embeddings).sample
 
         # perform guidance
         if do_classifier_free_guidance:

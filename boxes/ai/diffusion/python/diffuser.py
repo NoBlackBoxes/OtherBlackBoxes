@@ -6,11 +6,25 @@ model_id = "stabilityai/stable-diffusion-2"
 
 # Use the Euler scheduler here instead
 scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
-pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float16)
-pipe = pipe.to("cuda")
+
+## GPU
+#pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float16)
+#pipe = pipe.to("cuda")
+
+# CPU
+pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float32)
+pipe = pipe.to("cpu")
+
+# Something
 pipe.enable_attention_slicing()
 
-prompt = "a blueprint style drawing of a school designed by buckminster fuller"
+# Set prompt
+prompt = "a painting of a christmas scene in Camden, London UK with a lot of snow"
+
+# Generate image
 image = pipe(prompt).images[0]  
-    
-image.save("outputs/buckminster_school.png")
+
+# Save image
+image.save("/home/kampff/Downloads/camden_xmas.png")
+
+#FIN
