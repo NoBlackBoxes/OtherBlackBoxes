@@ -1,6 +1,6 @@
-from diffusers import StableDiffusionImg2ImgPipeline, EulerDiscreteScheduler
-from PIL import Image
 import torch
+from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
+from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -15,35 +15,14 @@ scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="schedule
 #pipe = pipe.to("cuda")
 
 # CPU
-#pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float32)
-#pipe = pipe.to("cpu")
-
-# load the img2img pipeline
-device = "cpu"
-pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float32)
+pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float32)
 pipe = pipe.to("cpu")
-
-
-
-
 
 # Something
 pipe.enable_attention_slicing()
 
 # Set prompt
-prompt = "two robot children fixing tiny computers in a science lab"
-
-init_image = Image.open("/home/kampff/Downloads/kids.jpg").convert("RGB")
-init_image.thumbnail((768, 768))
-
-images = pipe(prompt=prompt, image=init_image, strength=0.75, guidance_scale=7.5).images
-
-images[0].save("/home/kampff/Downloads/robot_kids.png")
-
-
-
-
-
+prompt = "hallmark christmas card style image of two kids dressed for winter weather in a snow storm"
 
 # Set height and width based on UNet size and VAE scale factor
 # - pipe.unet.config.sample_size = 64 / 96
@@ -52,11 +31,6 @@ images[0].save("/home/kampff/Downloads/robot_kids.png")
 #width = 512
 height = 768
 width = 768
-
-
-
-
-
 
 # Check inputs. Raise error if not correct
 pipe.check_inputs(prompt, height, width, 1)
@@ -76,9 +50,15 @@ text_embeddings = pipe._encode_prompt(prompt, device, num_images_per_prompt, do_
 num_inference_steps = 50
 strength = 0.75
 pipe.scheduler.set_timesteps(num_inference_steps, device=device)
-timesteps = pipe.scheduler.timesteps
-timesteps, num_inference_steps = pipe.get_timesteps(num_inference_steps, strength, device)
-latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
+
+# Adjust timesteps to start later in the denoising
+offset = pipe.scheduler.config.get("steps_offset", 0)
+init_timestep = int(num_inference_steps * strength) + offset
+init_timestep = min(init_timestep, num_inference_steps)
+t_start = max(num_inference_steps - init_timestep + offset, 0)
+timesteps = pipe.scheduler.timesteps[t_start:]
+num_inference_steps = num_inference_steps - t_start
+first_latent_timestep = timesteps[:1]
 
 # Prepare latent variables (random initialize)
 generator = None
@@ -87,7 +67,7 @@ num_channels_latents = pipe.unet.in_channels
 
 # Load starting image and encode
 with torch.no_grad():
-    image = Image.open("/home/kampff/Downloads/kids.jpg")
+    image = Image.open("/home/kampff/Downloads/xmas.jpg")
     w, h = image.size
     w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
     #image = image.resize((w, h), resample=PIL_INTERPOLATION["lanczos"])
@@ -101,8 +81,9 @@ with torch.no_grad():
     latents = 0.18215 * latents
     # Add noise to latents
     noise = torch.randn(latents.shape, generator=generator, device=device, dtype=torch.float32)
-    latents = pipe.scheduler.add_noise(latents, noise, latent_timestep)
-    
+    latents = pipe.scheduler.add_noise(latents, noise, first_latent_timestep)
+
+# Was adding too much noise...bu...divided by 8...for no reason
 
 # Visualize initial latents
 plt.subplot(2,2,1)

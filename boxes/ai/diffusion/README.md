@@ -66,3 +66,31 @@ python scripts/txt2img.py --prompt "a blueprint style drawing of a school design
 # V model
 python scripts/txt2img.py --prompt "professional photograph of a school designed by buckminster fuller" --ckpt weights/768-v-ema.ckpt --config configs/stable-diffusion/v2-inference-v.yaml --H 768 --W 768
 ```
+
+## ONNX
+
+Convert stable diffusion to ONNX format
+
+```bash
+pip install onnx
+pip install onnxruntime
+pip install onnxruntime-openvino # Intel
+cd tmp
+git clone https://github.com/huggingface/diffusers
+mkdir onnx
+python diffusers/scripts/convert_stable_diffusion_checkpoint_to_onnx.py \
+  --model_path="stabilityai/stable-diffusion-2" \
+  --output_path="onnx/stablediffusion_onnx"
+```
+
+
+Build OpenVINO
+
+```bash
+git clone https://github.com/openvinotoolkit/openvino.git
+cd openvino
+git submodule update --init --recursive
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make --jobs=$(nproc --all)
+```
