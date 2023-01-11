@@ -7,8 +7,8 @@ from transformers import DetrFeatureExtractor, DetrForObjectDetection
 import torch
 
 # Specify paths
-repo = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
-image_path = repo + '/boxes/ai/transformers/_data/zoom_lesson.jpg'
+repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
+image_path = repo_path + '/boxes/ai/transformers/_data/zoom_lesson.jpg'
 image = Image.open(image_path)
 
 ## Display test image

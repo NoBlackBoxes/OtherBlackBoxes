@@ -131,8 +131,8 @@ def rescale_bboxes(out_bbox, size):
 
 
 # Test Model
-repo = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
-image_path = repo + '/boxes/ai/transformers/_data/cereals_usa.jpg'
+repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
+image_path = repo_path + '/boxes/ai/transformers/_data/cereals_usa.jpg'
 image = Image.open(image_path)
 
 # mean-std normalize the input image (batch-size: 1)

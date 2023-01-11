@@ -2,7 +2,6 @@ from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
 import torch
 import matplotlib.pyplot as plt
 
-#model_id = "stabilityai/stable-diffusion-2-base"
 model_id = "stabilityai/stable-diffusion-2"
 
 # Use the Euler scheduler here instead
@@ -19,8 +18,9 @@ pipe = pipe.to("cpu")
 # Something
 pipe.enable_attention_slicing()
 
-# Set prompt
-prompt = "dramatic photo of a team of robots playing football in a large stadium"
+# Set prompts
+positive_prompt = 'An amazing high resolution artistic photograph of a futuristic school building where all the teachers are robots'
+negative_prompt = 'distorted faces, distorted hands'
 
 # Set height and width based on UNet size and VAE scale factor
 # - pipe.unet.config.sample_size = 64 / 96
@@ -31,7 +31,7 @@ height = 768
 width = 768
 
 # Check inputs. Raise error if not correct
-pipe.check_inputs(prompt, height, width, 1)
+pipe.check_inputs(positive_prompt, height, width, 1)
 
 # Define call parameters
 batch_size = 1
@@ -41,8 +41,7 @@ do_classifier_free_guidance = True
 
 # Encode input prompt
 num_images_per_prompt = 1
-negative_prompt = None
-text_embeddings = pipe._encode_prompt(prompt, device, num_images_per_prompt, do_classifier_free_guidance, negative_prompt)
+text_embeddings = pipe._encode_prompt(positive_prompt, device, num_images_per_prompt, do_classifier_free_guidance, negative_prompt)
 
 # Prepare timesteps
 num_inference_steps = 50
