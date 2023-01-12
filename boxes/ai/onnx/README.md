@@ -27,6 +27,7 @@ Install ONNX
 pip install numpy matplotlib pillow
 pip install onnx
 pip install onnxruntime
+#pip install onnxruntime-gpu
 ```
 
 ## Export models to ONNX

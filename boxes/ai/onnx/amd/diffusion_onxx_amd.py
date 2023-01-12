@@ -13,6 +13,12 @@ unet_path = '/home/kampff/Dropbox/Voight-Kampff/Technology/Models/stable-diffusi
 # Specify prompt
 prompt = 'An amazing high resolution artistic photograph of a futuristic school building where all the teachers are robots'
 
+# Specify execution providers
+providers = [
+    'ROCmExecutionProvider',
+    'CPUExecutionProvider',
+]
+
 # Specify ONNS session options
 so = onnxruntime.SessionOptions()
 so.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
@@ -32,7 +38,7 @@ negative_tokens[0,2] = 8159
 negative_tokens[0,3] = 49407
 
 # Load text encoder
-session = onnxruntime.InferenceSession(text_encoder_path, sess_options=so)
+session = onnxruntime.InferenceSession(text_encoder_path, sess_options=so, providers=providers)
 
 # Show input name
 session.get_inputs()[0].name

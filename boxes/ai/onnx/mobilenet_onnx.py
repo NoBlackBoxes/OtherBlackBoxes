@@ -62,3 +62,5 @@ plt.show()
 predicted_label = np.argmax(output)
 for i in range(5):
     print("Predicted labels: {0}".format(class_labels[top_5[i]]))
+
+# FIN
