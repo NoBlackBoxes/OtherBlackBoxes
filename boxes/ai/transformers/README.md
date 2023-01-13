@@ -22,3 +22,11 @@ pip install git+https://github.com/huggingface/transformers.git
 pip install timm matplotlib numpy
 pip install opencv-python
 ```
+
+# NVIDIA GPUs
+
+# AMD GPUs
+```bash
+pip uninstall torch
+pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/rocm5.2
+```

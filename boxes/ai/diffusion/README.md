@@ -94,3 +94,11 @@ mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make --jobs=$(nproc --all)
 ```
+
+# NVIDIA GPUs
+
+# AMD GPUs
+```bash
+pip uninstall torch
+pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/rocm5.2
+```

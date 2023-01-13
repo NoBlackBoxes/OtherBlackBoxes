@@ -4,8 +4,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-#model_id = "stabilityai/stable-diffusion-2-base"
-model_id = "stabilityai/stable-diffusion-2"
+model_id = "stabilityai/stable-diffusion-2-1"
 
 # Use the Euler scheduler here instead
 scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")

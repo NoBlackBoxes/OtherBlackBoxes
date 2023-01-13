@@ -4,8 +4,11 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import cv2
-from transformers import AutoFeatureExtractor, BeitForSemanticSegmentation
+from transformers import BeitImageProcessor, BeitForSemanticSegmentation
 import torch
+
+# Check for GPU (also works for AMD GPUs using ROCm)
+print(torch.cuda.is_available())
 
 # Specify paths
 repo = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
@@ -18,7 +21,7 @@ plt.imshow(image)
 plt.show()
 
 # Download feature extractor
-feature_extractor = AutoFeatureExtractor.from_pretrained("microsoft/beit-base-finetuned-ade-640-640")
+feature_extractor = BeitImageProcessor.from_pretrained("microsoft/beit-base-finetuned-ade-640-640")
 
 # Extract features (resizes and normalizes)
 encoding = feature_extractor(image, return_tensors="pt")
@@ -32,11 +35,10 @@ outputs = model(**encoding)
 logits = outputs.logits
 output = torch.sigmoid(logits).detach().numpy()[0]
 output = np.transpose(output, (1,2,0))
+masks = cv2.resize(output, (1280,960))
 
-a = cv2.resize(output, (1280,960))
-
-# Monitor
-plt.imshow(a[:,:, 143])
+# Monitor (class 144 of 150)
+plt.imshow(masks[:,:, 143])
 plt.show()
 
 #FIN

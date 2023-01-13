@@ -2,25 +2,33 @@ from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
 import torch
 import matplotlib.pyplot as plt
 
-model_id = "stabilityai/stable-diffusion-2"
+# Check for GPU (also works for AMD GPUs using ROCm)
+gpu_available = torch.cuda.is_available()
+print("Is the GPU available? {0}".format(gpu_available))
+
+# Set model ID
+model_id = "stabilityai/stable-diffusion-2-1"
 
 # Use the Euler scheduler here instead
 scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
 
-## GPU
-#pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float16)
-#pipe = pipe.to("cuda")
+# Load models (Large!)
+pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float16)
 
-# CPU
-pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, revision="fp16", torch_dtype=torch.float32)
-pipe = pipe.to("cpu")
+# Send to device
+if(gpu_available):
+    pipe = pipe.to("cuda")
+else:
+    pipe = pipe.to("cpu")
 
 # Something
 pipe.enable_attention_slicing()
 
 # Set prompts
-positive_prompt = 'An amazing high resolution artistic photograph of a futuristic school building where all the teachers are robots'
-negative_prompt = 'distorted faces, distorted hands'
+positive_prompt = 'old timey black and white photograph of a robot baby swiping on at a smartphone'
+negative_prompt = 'out of frame, lowres, text, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature,'
+#negative_prompt = ''
+
 
 # Set height and width based on UNet size and VAE scale factor
 # - pipe.unet.config.sample_size = 64 / 96
@@ -36,7 +44,7 @@ pipe.check_inputs(positive_prompt, height, width, 1)
 # Define call parameters
 batch_size = 1
 device = pipe._execution_device
-guidance_scale = 9 # greater than 1 means do classifier free guidance
+guidance_scale = 9.5 # greater than 1 means do classifier free guidance
 do_classifier_free_guidance = True
 
 # Encode input prompt
@@ -64,23 +72,24 @@ latents = pipe.prepare_latents(
 )
 
 # Visualize initial latents
-plt.subplot(2,2,1)
-plt.imshow(latents[0, 0, :, :])
-plt.subplot(2,2,2)
-plt.imshow(latents[0, 1, :, :])
-plt.subplot(2,2,3)
-plt.imshow(latents[0, 2, :, :])
-plt.subplot(2,2,4)
-plt.imshow(latents[0, 3, :, :])
-plt.show()
+if(not gpu_available):
+    plt.subplot(2,2,1)
+    plt.imshow(latents[0, 0, :, :])
+    plt.subplot(2,2,2)
+    plt.imshow(latents[0, 1, :, :])
+    plt.subplot(2,2,3)
+    plt.imshow(latents[0, 2, :, :])
+    plt.subplot(2,2,4)
+    plt.imshow(latents[0, 3, :, :])
+    plt.show()
 
-# Decode random latents
-with torch.no_grad():
-    image = pipe.decode_latents(latents)
-
-# Visualize initial decoded latents
-plt.imshow(image[0,:,:,:])
-plt.show()
+## Decode random latents
+#with torch.no_grad():
+#    image = pipe.decode_latents(latents)
+#
+## Visualize initial decoded latents
+#plt.imshow(image[0,:,:,:])
+#plt.show()
 
 # Prepare extra step kwargs
 eta = 0.0
@@ -111,20 +120,18 @@ with torch.no_grad():
             # Steps the latents...impements diffusion algorithm (subtract oredicited noise...basically...depends a bit on size of timestep...I guess to make it stable...)
             # - moves latemts through atent space towards the manifold with valid images...bu...guided by the text prompt...
             latents = pipe.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
-            print(latents)
         else:
             noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
             noise_pred = noise_pred_uncond
             # Just denoise initial random latents
             latents = pipe.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
-            print(latents)
 
         # Decode current latents
         image = pipe.decode_latents(latents)
 
         # Save current image
         image = pipe.numpy_to_pil(image)
-        image[0].save("/home/kampff/Downloads/steps/{0}.png".format(i))
+        image[0].save("/home/kampff/Downloads/steps/" + str(i).zfill(2) + '.png')
 
         # Report progress
         print("Iteration {0}...".format(i))
