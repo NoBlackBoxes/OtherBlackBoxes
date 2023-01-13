@@ -20,4 +20,5 @@ Setup "Transformers" Environment
 ```bash
 pip install git+https://github.com/huggingface/transformers.git
 pip install timm matplotlib numpy
+pip install opencv-python
 ```
