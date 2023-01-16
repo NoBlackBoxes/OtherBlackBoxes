@@ -1,23 +1,25 @@
 import numpy as np
+import jax.numpy as jnp
+from jax import grad, jit
 import matplotlib.pyplot as plt
 import time
 
 # Specify paths
 repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
-data_path = repo_path + '/boxes/ai/sgd/_data/noisy.csv'
+data_path = repo_path + '/boxes/ai/sgd/_data/complex.csv'
 
 # Load data
 data = np.genfromtxt(data_path, delimiter=',')
 x = data[:,0]
 y = data[:,1]
 
-# Inital guesses
+# Inital parameter guesses
 A = np.random.rand(1)[0] - 0.5
 B = np.random.rand(1)[0] - 0.5
 C = np.random.rand(1)[0] - 0.5
 D = np.random.rand(1)[0] - 0.5
 E = np.random.rand(1)[0] - 0.5
-params = np.array([A,B,C,D,E])
+params = jnp.array([A,B,C,D,E])
 num_params = len(params)
 
 # Define function
@@ -30,42 +32,42 @@ def func(x, params):
     return A * (x**5) + B * (x**4) + C * (x**3) + D * (x**2) + E * (x)
     
 # Define loss
-def mse(x, y, params):
+def loss(x, y, params):
     guess = func(x, params)
     err = y - guess
-    return np.mean(err*err)
+    return jnp.mean(err*err)
+
+# Compute gradient (w.r.t. parameters)
+grad_loss = grad(loss, argnums=2)
+grad_loss_jit = jit(grad_loss)
 
 # Train
-initial_mse = mse(x, y, params)
-last_error = initial_mse
-step_size = 0.00001
-alpha = 1
+alpha = .00001
 gradients = np.zeros(num_params)
 report_interval = 100
-mses = []
+losses = []
 start_time = time.time()
 num_epochs = 30000
+initial_loss = loss(x, y, params)
 for i in range(num_epochs):
-    for p in range(num_params):
-        guess_params = np.copy(params)
-        guess_params[p] += step_size
-        e0 = mse(x, y, params)
-        e1 = mse(x, y, guess_params)
-        grad = e0 - e1
 
-        # Update
-        params[p] += (grad * alpha)
+    # Compute gradient
+    #gradients = grad_loss(x, y, params)
+    gradients = grad_loss_jit(x, y, params)
 
-        # Store previous gradient
-        gradients[p] = grad
+    # Update parameters
+    params -= (gradients * alpha)
+
+    # Compute loss
+    current_loss = loss(x, y, params)
 
     # Store MSE
-    mses.append(e0)
+    losses.append(current_loss)
     
     # Report?
     if((i % report_interval) == 0):
         np.set_printoptions(precision=3)
-        print("MSE: {0:.2f}, Params: {1}".format(e0, params))
+        print("MSE: {0:.2f}, Params: {1}".format(current_loss, params))
 end_time = time.time()
 
 # Benchmark
@@ -78,7 +80,7 @@ plt.plot(x, y, 'b.', markersize=1)
 plt.plot(x, prediction, 'r.', markersize=1)
 plt.show()
 
-plt.plot(np.array(mses))
+plt.plot(np.array(losses))
 plt.show()
 
 #FIN

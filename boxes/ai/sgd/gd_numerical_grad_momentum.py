@@ -1,11 +1,9 @@
-from distutils.log import error
 import numpy as np
 import matplotlib.pyplot as plt
-from torch import le
 
 # Specify paths
 repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
-data_path = repo_path + '/boxes/ai/sgd/_data/noisy.csv'
+data_path = repo_path + '/boxes/ai/sgd/_data/complex.csv'
 
 # Load data
 data = np.genfromtxt(data_path, delimiter=',')

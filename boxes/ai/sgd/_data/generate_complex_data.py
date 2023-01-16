@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 # Specify paths
 repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
-data_path = repo_path + '/boxes/ai/sgd/_data/noisy.csv'
+data_path = repo_path + '/boxes/ai/sgd/_data/complex.csv'
 
 # Generate X
 extent = 7
@@ -32,7 +32,7 @@ def func(x, params):
 y = func(x, params)
 
 # Add noise
-noise = (np.random.randn(num_samples) - 0.5)*5
+noise = (np.random.randn(num_samples) - 0.5)*3
 y = y + noise
 
 # Plot
