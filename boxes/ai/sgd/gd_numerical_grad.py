@@ -1,5 +1,7 @@
+from tracemalloc import start
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 from torch import le
 
 # Specify paths
@@ -39,9 +41,13 @@ def mse(x, y, params):
 initial_mse = mse(x, y, params)
 last_error = initial_mse
 step_size = 0.00001
-learning_rate = 1
+alpha = 1
 gradients = np.zeros(num_params)
-for i in range(100000):
+report_interval = 100
+mses = []
+start_time = time.time()
+num_epochs = 30000
+for i in range(num_epochs):
     for p in range(num_params):
         guess_params = np.copy(params)
         guess_params[p] += step_size
@@ -50,13 +56,23 @@ for i in range(100000):
         grad = e0 - e1
 
         # Update
-        params[p] += (grad * learning_rate)
+        params[p] += (grad * alpha)
 
         # Store previous gradient
         gradients[p] = grad
-    print(e0)
-    print(gradients)
-    print(params)
+
+    # Store MSE
+    mses.append(e0)
+    
+    # Report?
+    if((i % report_interval) == 0):
+        np.set_printoptions(precision=3)
+        print("MSE: {0:.2f}, Params: {1}".format(e0, params))
+end_time = time.time()
+
+# Benchmark
+elapsed = end_time - start_time
+print("Time per iteration: {0} ms".format(1000*elapsed/num_epochs))
 
 # Compare
 prediction = func(x, params)
@@ -64,7 +80,7 @@ plt.plot(x, y, 'b.', markersize=1)
 plt.plot(x, prediction, 'r.', markersize=1)
 plt.show()
 
+plt.plot(np.array(mses))
+plt.show()
+
 #FIN
-
-
-

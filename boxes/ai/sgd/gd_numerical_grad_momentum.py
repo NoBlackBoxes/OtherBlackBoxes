@@ -40,12 +40,11 @@ def mse(x, y, params):
 initial_mse = mse(x, y, params)
 last_error = initial_mse
 step_size = 0.000001
-alpha = 0.1
-beta = 0.01
-learning_rates = np.ones(num_params) * alpha
-gradients = np.zeros(num_params)
-param_errors = np.zeros(num_params)
-prev_errors = np.ones(num_params) * 9999999999
+alpha = 1
+beta = 0.999
+deltas = np.zeros(num_params)
+report_interval = 100
+mses = []
 for i in range(100000):
     new_params = np.copy(params)
     for p in range(num_params):
@@ -55,38 +54,30 @@ for i in range(100000):
         e1 = mse(x, y, guess_params)
         grad = e0 - e1
 
-        # Compare to previous gradient
-        if(np.sign(gradients[p]) == np.sign(grad)):
-            learning_rates[p] = (learning_rates[p] + beta)
-        else:
-            learning_rates[p] = (learning_rates[p] - beta)
+        # Update delta
+        deltas[p] = (alpha * grad) + (beta * deltas[p])
 
-        # Update
-        new_params[p] = params[p] + (grad * learning_rates[p])
-
-        # Store previous gradient
-        gradients[p] = grad
-
-        # Store errors
-        param_errors[p] = e0
+        # Update parameter
+        new_params[p] = params[p] + deltas[p]
 
     # Set new parameters
     params = new_params
 
-#    mean_error = np.mean(param_errors)
-#    if(mean_error > prev_error):
-#        learning_rates /= 10
-#    prev_error = mean_error
+    # Store MSE
+    mses.append(e0)
 
-    print(e0)
-    print(learning_rates)
-    print(gradients)
-    print(params)
+    # Report?
+    if((i % report_interval) == 0):
+        np.set_printoptions(precision=3)
+        print("MSE: {0:.2f}, Params: {1}, {2}".format(e0, params, deltas))
 
 # Compare
 prediction = func(x, params)
 plt.plot(x, y, 'b.', markersize=1)
 plt.plot(x, prediction, 'r.', markersize=1)
+plt.show()
+
+plt.plot(np.array(mses))
 plt.show()
 
 #FIN

@@ -38,6 +38,8 @@ def mse(x, y, params):
 initial_mse = mse(x, y, params)
 last_error = initial_mse
 step_size = 0.0005
+report_interval = 100
+mses = []
 for i in range(100000):
     for p in range(num_params):
         guess_params = np.copy(params)
@@ -48,12 +50,22 @@ for i in range(100000):
             params[p] += step_size 
         else:
             params[p] -= step_size 
-    print(e0)
+
+    # Store MSE
+    mses.append(e0)
+
+    # Report?
+    if((i % report_interval) == 0):
+        np.set_printoptions(precision=3)
+        print("MSE: {0:.2f}, Params: {1}".format(e0, params))
 
 # Compare
 prediction = func(x, params)
 plt.plot(x, y, 'b.', markersize=1)
 plt.plot(x, prediction, 'r.', markersize=1)
+plt.show()
+
+plt.plot(np.array(mses))
 plt.show()
 
 #FIN

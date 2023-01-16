@@ -7,7 +7,7 @@ data_path = repo_path + '/boxes/ai/sgd/_data/noisy.csv'
 
 # Generate X
 extent = 7
-num_samples = 10000
+num_samples = 1000
 x = (np.random.rand(num_samples) * extent) - (extent/2)
 
 # Inital guesses
@@ -32,7 +32,7 @@ def func(x, params):
 y = func(x, params)
 
 # Add noise
-noise = (np.random.rand(num_samples) - 0.5)*10
+noise = (np.random.randn(num_samples) - 0.5)*5
 y = y + noise
 
 # Plot
