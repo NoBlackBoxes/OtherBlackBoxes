@@ -16,5 +16,6 @@ source ai/bin/activate
 Install Python libraries
 
 ```bash
-pip install numpy matplotlib
+pip install numpy matplotlib pillow
+pip install torch torchvision
 ```
