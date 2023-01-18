@@ -26,6 +26,10 @@ for img in img_ids:
     if len(annotations) > 1:
         continue
 
+    # Not too small
+    if (annotations[0]['area'] < 10000):
+        continue
+
     # No crowds
     if annotations[0]['iscrowd']:
         continue

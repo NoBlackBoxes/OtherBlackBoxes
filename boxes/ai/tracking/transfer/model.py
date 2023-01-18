@@ -15,15 +15,26 @@ class custom(torch.nn.Module):
             param.requires_grad = False
 
         # Remove classifier (i.e. extract feature detection layers)
-        self.features = backbone.features
+        self.features =  torch.nn.Sequential(*list(backbone.children())[:-2])
 
         # Add a new prediction head
         self.flatten = torch.nn.Flatten()
-        self.linear = torch.nn.Linear(62720, 2)
+        self.linear1 = torch.nn.Linear(150528, 100)
+        self.relu1 = torch.nn.ReLU()
+        self.linear2 = torch.nn.Linear(100, 50)
+        self.relu2 = torch.nn.ReLU()
+        self.linear3 = torch.nn.Linear(50, 2)
+        self.sigmoid = torch.nn.Sigmoid()
+
 
     # Print
     def forward(self, x):
         x = self.features(x)
         x = self.flatten(x)
-        x = self.linear(x)
+        x = self.linear1(x)
+        x = self.relu1(x)
+        x = self.linear2(x)
+        x = self.relu2(x)
+        x = self.linear3(x)
+        x = self.sigmoid(x)
         return x
