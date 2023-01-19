@@ -8,26 +8,25 @@ class custom(torch.nn.Module):
         super(custom, self).__init__()
 
         # Load backbone
-        backbone = torch.hub.load('pytorch/vision:v0.10.0', 'mobilenet_v2', pretrained=True)
+        backbone = torch.hub.load('pytorch/vision:v0.10.0', 'mobilenet_v2', weights='MobileNet_V2_Weights.IMAGENET1K_V1')
 
         # Freeze the backbone weights
         for param in backbone.parameters():
             param.requires_grad = False
 
         # Remove classifier (i.e. extract feature detection layers)
-        self.features =  torch.nn.Sequential(*list(backbone.children())[:-2])
+        self.features =  torch.nn.Sequential(*list(backbone.children())[:-1])
 
         # Add a new prediction head
         self.flatten = torch.nn.Flatten()
-        self.linear1 = torch.nn.Linear(150528, 100)
+        self.linear1 = torch.nn.Linear(62720, 500)
         self.relu1 = torch.nn.ReLU()
-        self.linear2 = torch.nn.Linear(100, 50)
+        self.linear2 = torch.nn.Linear(500, 50)
         self.relu2 = torch.nn.ReLU()
         self.linear3 = torch.nn.Linear(50, 2)
         self.sigmoid = torch.nn.Sigmoid()
 
-
-    # Print
+    # Forward
     def forward(self, x):
         x = self.features(x)
         x = self.flatten(x)

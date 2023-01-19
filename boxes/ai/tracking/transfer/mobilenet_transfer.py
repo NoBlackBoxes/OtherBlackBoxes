@@ -88,8 +88,8 @@ train_dataset = dataset.custom(image_paths=train_image_paths, targets=train_targ
 test_dataset = dataset.custom(image_paths=test_image_paths, targets=test_targets, transform=preprocess)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=500, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=500, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True)
 
 # Instantiate model
 custom_model = model.custom()
