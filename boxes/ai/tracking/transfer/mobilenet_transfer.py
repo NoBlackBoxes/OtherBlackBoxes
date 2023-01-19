@@ -1,4 +1,3 @@
-from random import shuffle
 import numpy as np
 import matplotlib.pyplot as plt
 from pycocotools.coco import COCO
@@ -33,34 +32,47 @@ img_ids = coco.getImgIds(catIds=cat_ids )
 # Select annotations of images with only one person with a visible nose
 image_paths = []
 targets = []
-for img in img_ids:
-    ann_ids = coco.getAnnIds(imgIds=img, catIds=cat_ids, iscrowd=None)
+for i in img_ids:
+    ann_ids = coco.getAnnIds(imgIds=i, catIds=cat_ids, iscrowd=None)
     annotations = coco.loadAnns(ann_ids)
 
     # Individuals
     if len(annotations) > 1:
         continue
 
-    # Not too small
-    if (annotations[0]['area'] < 10000):
-        continue
-
     # No crowds
     if annotations[0]['iscrowd']:
         continue
 
-    # Only visible noses
-    if (annotations[0]['keypoints'][2] == 0):
+    # Extract relevant keypoints
+    keypoints =     annotations[0]['keypoints']
+    nose_x =        keypoints[0]
+    nose_y =        keypoints[1]
+    nose_visible =  keypoints[2]
+    l_eye_x =       keypoints[3]
+    l_eye_y =       keypoints[4]
+    l_eye_visible = keypoints[5]
+    r_eye_x =       keypoints[6]
+    r_eye_y =       keypoints[7]
+    r_eye_visible = keypoints[8]
+
+    # Visible nose and eyes
+    if (nose_visible == 0) or (l_eye_visible == 0) or (r_eye_visible == 0):
         continue
     
+    # Big face
+    eye_distance = abs(l_eye_x - r_eye_x) + abs(l_eye_y - r_eye_y)
+    if eye_distance < 50:
+        continue
+
     # Isolate image path
     img = coco.loadImgs(annotations[0]['image_id'])[0]
 
     # Normalize nose centroid
     width = img['width']
     height = img['height']
-    x = np.float32(annotations[0]['keypoints'][0]) / width
-    y = np.float32(annotations[0]['keypoints'][1]) / height
+    x = np.float32(nose_x) / width
+    y = np.float32(nose_y) / height
     target = np.array([x, y], dtype=np.float32)
 
     # Store dataset
@@ -71,10 +83,16 @@ for img in img_ids:
 num_samples = len(targets)
 num_train = int(0.9 * num_samples)
 num_test = num_samples - num_train
-train_image_paths = image_paths[:num_train]
-train_targets = targets[:num_train]
-test_image_paths = image_paths[num_train:]
-test_targets = targets[num_train:]
+
+#train_image_paths = image_paths[:num_train]
+#train_targets = targets[:num_train]
+#test_image_paths = image_paths[num_train:]
+#test_targets = targets[num_train:]
+
+train_image_paths = image_paths[num_test:]
+train_targets = targets[num_test:]
+test_image_paths = image_paths[:num_test]
+test_targets = targets[:num_test]
 
 # Specify transforms for inputs
 preprocess = transforms.Compose([
@@ -88,8 +106,8 @@ train_dataset = dataset.custom(image_paths=train_image_paths, targets=train_targ
 test_dataset = dataset.custom(image_paths=test_image_paths, targets=test_targets, transform=preprocess)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=True)
 
 # Instantiate model
 custom_model = model.custom()
@@ -138,7 +156,8 @@ def test(dataloader, model, loss_fn):
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
     test_loss /= num_batches
-    print(f"Test Error: \n Avg loss: {test_loss:>8f} \n")
+    pixel_loss = np.sqrt(test_loss) * 224.0
+    print(f"Test Error: \n Avg loss: {test_loss:>8f}, pixel_loss: {pixel_loss:>5f}\n")
 
 # TRAIN
 epochs = 25
@@ -147,6 +166,9 @@ for t in range(epochs):
     train(train_dataloader, custom_model, loss_fn, optimizer)
     test(test_dataloader, custom_model, loss_fn)
 print("Done!")
+
+
+
 
 # Display image and label.
 train_features, train_targets = next(iter(test_dataloader))
@@ -164,12 +186,17 @@ for i in range(9):
     feature = train_features[i]
     target = train_targets[i]
     output = outputs[i]
-    feature = (feature + 1.0) / 2.0
+    feature = (feature + 2.0) / 4.0
     image = np.transpose(feature, (1,2,0))
     plt.imshow(image)
     plt.plot(output[0] * 224, output[1] * 224, 'yo', markersize=15, fillstyle='full')
     plt.plot(target[0] * 224, target[1] * 224, 'g+', markersize=15,)
 plt.show()
+
+
+
+
+
 
 # Save model
 torch.save(custom_model.state_dict(), output_path + '/custom.pt')

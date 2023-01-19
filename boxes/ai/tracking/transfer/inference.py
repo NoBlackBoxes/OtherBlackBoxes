@@ -4,7 +4,13 @@ import model
 from torchvision import transforms
 
 # Specify video or camera
-live_capture = False
+live_capture = True
+if live_capture:
+    width = 640
+    height = 480
+else:
+    width = 512
+    height = 512
 
 # Specify paths
 repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
@@ -64,8 +70,9 @@ while(True):
 
     # Extract outputs
     output = output.cpu().detach().numpy()
-    x = int(output[0,0] * 512)
-    y = int(output[0,1] * 512)
+    print(output)
+    x = int(output[0,0] * width)
+    y = int(output[0,1] * height)
 
     # Draw tracked point
     frame = cv2.circle(frame, (x, y), 5, (0, 255, 255))

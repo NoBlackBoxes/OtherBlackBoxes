@@ -16,6 +16,9 @@ coco=COCO(annotations_path)
 cat_ids = coco.getCatIds(catNms=['person'])
 img_ids = coco.getImgIds(catIds=cat_ids )
 
+# Keypolint labels
+keypoint_lables = ['nose', 'left eye', 'right eye', 'left ear', 'right ear', 'left shoulder', 'right shoulder', 'left elbow', 'right elbow', 'left wrist', 'right wrist', 'left hip', 'right hip', 'left knee', 'right knee', 'left ankle', 'right ankle']
+
 # Select annotations of images with only one person with a visible nose
 valid_annotations = []
 for img in img_ids:
