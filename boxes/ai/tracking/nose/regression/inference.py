@@ -5,10 +5,16 @@ from torchvision import transforms
 
 # Specify video or camera
 live_capture = True
+if live_capture:
+    width = 640
+    height = 480
+else:
+    width = 512
+    height = 512
 
 # Specify paths
 repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/tracking/faces'
+box_path = repo_path + '/boxes/ai/tracking/nose/regression'
 model_path = box_path + '/_tmp/custom.pt'
 video_path = repo_path + '/boxes/ai/tracking/_data/nose.mp4'
 
@@ -40,6 +46,9 @@ else:
 cv2.namedWindow('tracking')
 
 # Loop until 'q' pressed
+smooth = True
+alpha = 0.5
+first_frame = True
 while(True):
     # Read most recent frame
     ret, frame = cap.read()
@@ -64,17 +73,27 @@ while(True):
 
     # Extract outputs
     output = output.cpu().detach().numpy()
-    x = int(output[0,0] * 224)
-    y = int(output[0,1] * 224)
+    print(output)
+    x = output[0,0] * width
+    y = output[0,1] * height
+
+    # Smooth?
+    if smooth and (not first_frame):
+        _x = (alpha * x) + ((1 - alpha) * _x)
+        _y = (alpha * y) + ((1 - alpha) * _y)
+    else:
+        _x = x
+        _y = y
+    first_frame = False
 
     # Draw tracked point
-    frame = cv2.circle(resized, (x, y), 5, (0, 255, 255))
+    frame = cv2.circle(frame, (int(_x), int(_y)), 11, (0, 255, 255), thickness=-1)
 
     # Display the resulting frame
     cv2.imshow('tracking', frame)
 
     # Wait for a keypress, and quit if 'q'
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(20) & 0xFF == ord('q'):
         break
 
 # Release the caputre

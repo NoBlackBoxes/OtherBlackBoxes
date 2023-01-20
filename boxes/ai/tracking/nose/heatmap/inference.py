@@ -1,6 +1,7 @@
 import cv2
 import torch
 import model
+import numpy as np
 from torchvision import transforms
 
 # Specify video or camera
@@ -14,7 +15,7 @@ else:
 
 # Specify paths
 repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/tracking/transfer'
+box_path = repo_path + '/boxes/ai/tracking/nose/heatmap'
 model_path = box_path + '/_tmp/custom.pt'
 video_path = repo_path + '/boxes/ai/tracking/_data/nose.mp4'
 
@@ -70,18 +71,19 @@ while(True):
 
     # Extract outputs
     output = output.cpu().detach().numpy()
-    print(output)
-    x = int(output[0,0] * width)
-    y = int(output[0,1] * height)
+    output = np.squeeze(output)
+    resized = cv2.resize(output, (width,height))
 
-    # Draw tracked point
-    frame = cv2.circle(frame, (x, y), 5, (0, 255, 255))
+    # Mask
+    frame[:,:,2] = frame[:,:,0]/2 + (resized*255)
+    frame[:,:,1] = frame[:,:,1]/2
+    frame[:,:,0] = frame[:,:,2]/2
 
     # Display the resulting frame
     cv2.imshow('tracking', frame)
 
     # Wait for a keypress, and quit if 'q'
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(20) & 0xFF == ord('q'):
         break
 
 # Release the caputre

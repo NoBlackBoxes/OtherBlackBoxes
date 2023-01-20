@@ -9,19 +9,24 @@ class custom(torch.nn.Module):
         super(custom, self).__init__()
 
         # Load backbone
-        backbone = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', weights='ResNet18_Weights.DEFAULT')
+        backbone = torch.hub.load('pytorch/vision:v0.10.0', 'mobilenet_v3_large', weights='MobileNet_V3_Large_Weights.DEFAULT')
 
         # Freeze the backbone weights
         for param in backbone.parameters():
             param.requires_grad = False
 
+        # Unfreeze last layers
+        unfrozen = [14,15,16]
+        for index in unfrozen:
+            for param in backbone.features[index].parameters():
+                param.requires_grad = True
+
         # Remove classifier (i.e. extract feature detection layers)
-        self.features =  torch.nn.Sequential(*list(backbone.children())[:-3])
+        self.features =  torch.nn.Sequential(*list(backbone.children())[:-2])
 
         # Add a new prediction head
-        self.conv = torch.nn.Conv2d(256, 64, kernel_size = (1,1))
         self.flatten = torch.nn.Flatten()
-        self.linear1 = torch.nn.Linear(64*14*14,128)
+        self.linear1 = torch.nn.Linear(960*7*7,128)
         self.relu1 = torch.nn.ReLU(inplace=True)
         self.dropout1 = torch.nn.Dropout(0.2)
         self.linear2 = torch.nn.Linear(128,64)
@@ -36,7 +41,6 @@ class custom(torch.nn.Module):
     # Forward
     def forward(self, x):
         x = self.features(x)
-        x = self.conv(x)
         x = self.flatten(x)
         x = self.relu1(x)
         x = self.linear1(x)

@@ -1,28 +1,47 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
+import cv2
 import torch
 from pycocotools.coco import COCO
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
-    def __init__(self, image_paths, targets, transform=None, target_transform=None):
+    def __init__(self, image_paths, targets, transform=None, target_transform=None, augment=False):
         self.image_paths = image_paths
         self.targets = targets
         self.transform = transform
         self.target_transform = target_transform
+        self.augment = augment
 
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        image = Image.open(self.image_paths[idx]).convert('RGB')
+        image = cv2.imread(self.image_paths[idx])
         target = self.targets[idx,:]
+
+        # Adjust image color
+        if image.shape[2] == 1: # Is grayscale?
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        # Augment (or just resize)
+        if self.augment:
+            image, target = augment(image, target)
+        else:
+            image = cv2.resize(image, (224,224))
+
+        # Generate heatmap
+        heatmap = generate_heatmap(target)
+
+        # Set transforms
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
             label = self.target_transform(label)
-        return image, target
+
+        return image, heatmap
 
 # Load dataset
 def prepare(dataset_name, split):
@@ -111,5 +130,62 @@ def filter(dataset_name):
         targets.append(target)
 
     return np.array(image_paths), np.array(targets)
+
+# Augment
+def augment(image, target):
+
+    # Image size
+    height, width, depth = image.shape
+
+    # Nose position (pixels)
+    nose_x = width * target[0]
+    nose_y = height * target[1]
+
+    # Measure buffering
+    cushion = 30
+    buffer_left = int(nose_x) - cushion
+    buffer_right = width - int(nose_x) - cushion
+    buffer_top = int(nose_y) - cushion
+    buffer_bottom = height - int(nose_y) - cushion
+
+    # Clamp
+    buffer_left = np.clip(buffer_left, 1, width)
+    buffer_right = np.clip(buffer_right, 1, width)
+    buffer_top = np.clip(buffer_top, 1, height)
+    buffer_bottom = np.clip(buffer_bottom, 1, height)
+
+    # Set crop window
+    crop_left = np.random.randint(0, buffer_left)
+    crop_right = width - np.random.randint(0, buffer_right)
+    crop_top = np.random.randint(0, buffer_top)
+    crop_bottom = height - np.random.randint(0, buffer_bottom)
+    crop_width = crop_right - crop_left
+    crop_height = crop_bottom - crop_top
+
+    # Crop
+    crop = image[crop_top:crop_bottom, crop_left:crop_right, :]
+
+    # Augment (resize cropped, offset and scale target)
+    augmented_image = cv2.resize(crop, (224,224))
+    augmented_target = np.zeros(2, dtype=np.float32)
+    augmented_target[0] = (nose_x - crop_left) / crop_width 
+    augmented_target[1] = (nose_y - crop_top) / crop_height
+
+    return augmented_image, augmented_target
+
+# Generate heatmap
+def generate_heatmap(target):
+    heatmap = np.zeros((224,224), dtype=np.float32)
+    x = target[0]
+    y = target[1]
+    ix = int(np.floor(x * 224))
+    iy = int(np.floor(y * 224)) 
+    heatmap[iy][ix] = 1.0
+    heatmap = cv2.GaussianBlur(heatmap, ksize=(51,51), sigmaX=9, sigmaY=9)
+    heatmap = cv2.resize(heatmap, (7,7), interpolation=cv2.INTER_LINEAR)
+    heatmap = heatmap / np.sum(heatmap[:])
+    heatmap = np.expand_dims(heatmap, axis=0)
+
+    return heatmap
 
 #FIN
