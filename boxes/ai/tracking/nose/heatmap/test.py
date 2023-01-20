@@ -60,13 +60,14 @@ outputs = outputs.cpu().detach().numpy()
 for i in range(9):
     plt.subplot(3,3,i+1)
     feature = train_features[i]
-    target = train_targets[i]
-    output = outputs[i]
+    target = np.squeeze(train_targets[i].numpy())
     feature = (feature + 2.0) / 4.0
     image = np.transpose(feature, (1,2,0))
-    plt.imshow(image)
-    plt.plot(output[0] * 224, output[1] * 224, 'yo', markersize=15, fillstyle='full')
-    plt.plot(target[0] * 224, target[1] * 224, 'g+', markersize=15,)
+    target_heatmap = cv2.resize(target, (224,224))
+    output = np.squeeze(outputs[i])
+    predicted_heatmap = cv2.resize(output, (224,224))
+    plt.imshow(image, alpha=0.75)
+    plt.imshow(predicted_heatmap, alpha=0.5)
 plt.show()
 
 # Specify transforms for inputs
@@ -92,11 +93,13 @@ for i in range(9):
     feature = torch.unsqueeze(preprocess(rgb), 0)
     feature_gpu = feature.to(device)
     output = custom_model(feature_gpu)
-    output = output.cpu().detach().numpy()
-    output = output[0,:]
 
-    plt.imshow(rgb)
-    plt.plot(output[0] * 224, output[1] * 224, 'yo', markersize=15, fillstyle='full', alpha=0.75)
+    output = output.cpu().detach().numpy()
+    output = np.squeeze(output)
+    predicted_heatmap = cv2.resize(output, (224,224))
+
+    plt.imshow(rgb, alpha=0.75)
+    plt.imshow(predicted_heatmap, alpha=0.5)
 plt.show()
 
 cap.release()

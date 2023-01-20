@@ -102,7 +102,7 @@ def test(dataloader, model, loss_fn):
     print(f"Test Error: \n Avg loss: {test_loss:>8f}, pixel_loss: {pixel_loss:>5f}\n")
 
 # TRAIN
-epochs = 25
+epochs = 250
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader, custom_model, loss_fn, optimizer)

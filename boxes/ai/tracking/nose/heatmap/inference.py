@@ -5,7 +5,7 @@ import numpy as np
 from torchvision import transforms
 
 # Specify video or camera
-live_capture = True
+live_capture = False
 if live_capture:
     width = 640
     height = 480
@@ -46,6 +46,16 @@ else:
 # Create named window for diaply
 cv2.namedWindow('tracking')
 
+# Save?
+save = True
+video_path = box_path + '/_tmp/example.avi'
+if save:
+    # Open output video
+    video = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc('F','M','P','4'), 30, (width, height))
+    if not video.isOpened():
+        print("Cannot open video file")
+        exit()
+
 # Loop until 'q' pressed
 while(True):
     # Read most recent frame
@@ -82,12 +92,18 @@ while(True):
     # Display the resulting frame
     cv2.imshow('tracking', frame)
 
+    # Save?
+    if save:
+        video.write(frame)
+
     # Wait for a keypress, and quit if 'q'
-    if cv2.waitKey(20) & 0xFF == ord('q'):
+    if cv2.waitKey(10) & 0xFF == ord('q'):
         break
 
 # Release the caputre
 cap.release()
+if save:
+    video.release()
 
 # Destroy display window
 cv2.destroyAllWindows()
