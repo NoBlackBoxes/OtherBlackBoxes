@@ -16,7 +16,7 @@ x = np.expand_dims(x,1)
 y = np.expand_dims(y,1)
 
 # Inital parameter guesses
-num_neurons = 2
+num_neurons = 10
 W1 = np.random.rand(num_neurons) - 0.5
 B1 = np.random.rand(num_neurons) - 0.5
 W1 = np.expand_dims(W1,0)
@@ -30,10 +30,9 @@ B2 = np.expand_dims(B2,0)
 # Define function (network)
 def func(x, W1, B1, W2, B2):
     hidden = x.dot(W1) + B1
-    activations = nn.sigmoid(jnp.sum(hidden, axis=1))
-    activations = jnp.expand_dims(activations,1)
-    hidden2 = activations.dot(W2) + B2
-    output = jnp.sum(hidden2, axis=1)
+    activations = nn.sigmoid(hidden)
+    interim = activations.dot(W2.T) + B2
+    output = jnp.sum(interim, axis=1)
     return output
 
 # Define loss
@@ -55,10 +54,6 @@ deltas_W1 = np.zeros(num_neurons)
 deltas_B1 = np.zeros(num_neurons)
 deltas_W2 = np.zeros(num_neurons)
 deltas_B2 = np.zeros(num_neurons)
-gradients_W1 = np.zeros(num_neurons)
-gradients_B1 = np.zeros(num_neurons)
-gradients_W2 = np.zeros(num_neurons)
-gradients_B2 = np.zeros(num_neurons)
 report_interval = 100
 losses = []
 start_time = time.time()
@@ -93,7 +88,7 @@ for i in range(num_epochs):
     # Report?
     if((i % report_interval) == 0):
         np.set_printoptions(precision=3)
-        print("MSE: {0:.2f}, Weights: {1}".format(current_loss, W2))
+        print("MSE: {0:.2f}".format(current_loss))
 end_time = time.time()
 
 # Benchmark
@@ -106,7 +101,7 @@ plt.plot(x, y, 'b.', markersize=1)
 plt.plot(x, prediction, 'r.', markersize=1)
 plt.show()
 
-plt.plot(np.array(losses))
-plt.show()
+#plt.plot(np.array(losses))
+#plt.show()
 
 #FIN
