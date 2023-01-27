@@ -1,43 +1,43 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pyaudio
 from threading import Thread
 
 class stream:
-    def __init__(self, stream_id=0):        
-        # Configure audio recording
-        CHUNK = 1600                # Buffer size
-        FORMAT = pyaudio.paInt16    # Data type
-        CHANNELS = 1                # Number of channels
-        RATE = 16000                # Sample rate (Hz)
-        RECORD_SECONDS = 3          # Duration
+    def __init__(self, buffer_size, format, num_channels, sample_rate, duration):        
+        self.buffer_size = buffer_size
+        self.format = format
+        self.num_channels = num_channels
+        self.sample_rate = sample_rate
+        self.duration = duration
 
         # Get pyaudio object
         self.pya = pyaudio.PyAudio()
 
         # Open audio stream (from default device)
-        self.stream = self.pya.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    frames_per_buffer=CHUNK)        
-        self.sound = np.zeros(CHANNELS * RATE * RECORD_SECONDS, dtype=np.float32)
+        self.stream = self.pya.open(format=format, channels=num_channels, rate=sample_rate, input=True, frames_per_buffer=buffer_size)
+
+        # Create rolling buffer
+        self.sound = np.zeros(num_channels * sample_rate * duration, dtype=np.float32)
         self.streaming = False
+
+        # Configure thread
         self.thread = Thread(target=self.update, args=())
         self.thread.daemon = True
         
-    # method to start thread 
+    # Start thread method
     def start(self):
         self.streaming = True
         self.thread.start()
 
+    # Update thread method
     def update(self):
         while True :
+            # End?
             if self.streaming is False :
                 break
             
             # Read raw data and append
-            raw_data = self.stream.read(1600, exception_on_overflow = False)
+            raw_data = self.stream.read(self.buffer_size, exception_on_overflow = False)
 
             # Convert to numpy array
             integer_data = np.frombuffer(raw_data, dtype=np.int16)
@@ -46,13 +46,15 @@ class stream:
             # Concat and truncate
             self.sound = np.hstack([self.sound[1600:], float_data])
         
-        # Shutdown
+        # Shutdown thread
         self.stream.stop_stream()
         self.stream.close()
         self.pya.terminate()
 
-
+    # Read sound method
     def read(self):
         return self.sound
+
+    # Stop thread method
     def stop(self):
         self.streaming = False
