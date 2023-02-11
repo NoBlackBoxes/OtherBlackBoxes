@@ -1,8 +1,12 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import torch
 from pycocotools.coco import COCO
+
+# Get user name
+username = os.getlogin()
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
@@ -68,7 +72,7 @@ def prepare(dataset_name, split):
 def filter(dataset_name):
 
     # Specify paths
-    coco_folder = '/home/kampff/Dropbox/Voight-Kampff/Technology/Datasets/coco'
+    coco_folder = '/home/' + username + '/Datasets/coco'
     annotations_path = coco_folder + '/annotations/person_keypoints_' + dataset_name + '.json'
     images_folder = coco_folder + '/' + dataset_name
 

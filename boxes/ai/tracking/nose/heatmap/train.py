@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -14,8 +15,11 @@ import importlib
 importlib.reload(dataset)
 importlib.reload(model)
 
+# Get user name
+username = os.getlogin()
+
 # Specify paths
-repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
+repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
 box_path = repo_path + '/boxes/ai/tracking/nose/heatmap'
 output_path = box_path + '/_tmp'
 
@@ -37,7 +41,7 @@ train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, sh
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=True)
 
 # Inspect dataset?
-inspect = True
+inspect = False
 if inspect:
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
