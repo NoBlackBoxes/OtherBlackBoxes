@@ -1,3 +1,4 @@
+import os
 import cv2
 import torch
 import model
@@ -12,8 +13,11 @@ else:
     width = 512
     height = 512
 
+# Get user name
+username = os.getlogin()
+
 # Specify paths
-repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
+repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
 box_path = repo_path + '/boxes/ai/transformers/vision/scratch'
 model_path = box_path + '/_tmp/custom.pt'
 video_path = repo_path + '/boxes/learning/transfer/tracking/_data/nose.mp4'

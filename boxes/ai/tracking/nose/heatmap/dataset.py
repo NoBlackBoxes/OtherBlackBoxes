@@ -26,7 +26,7 @@ class custom(torch.utils.data.Dataset):
 
         # Adjust image color
         if image.shape[2] == 1: # Is grayscale?
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         else:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

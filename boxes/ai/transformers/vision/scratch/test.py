@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -13,8 +14,11 @@ import importlib
 importlib.reload(dataset)
 importlib.reload(model)
 
+# Get user name
+username = os.getlogin()
+
 # Specify paths
-repo_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes'
+repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
 box_path = repo_path + '/boxes/ai/transformers/vision/scratch'
 model_path = box_path + '/_tmp/custom.pt'
 
