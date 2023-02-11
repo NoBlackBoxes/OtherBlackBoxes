@@ -88,7 +88,7 @@ class custom(torch.nn.Module):
         super(custom, self).__init__()
 
         # Attributes
-        self.num_patches = 14 # 224x224 image is (14 x 14 pacthes of dimensin 16x16 each)
+        self.num_patches = 14 # 224x224 image is (14 x 14 pacthes of dimension 16x16 each)
         self.num_blocks = num_blocks
         self.num_heads = num_heads
         self.hidden_dimension = hidden_dimension
