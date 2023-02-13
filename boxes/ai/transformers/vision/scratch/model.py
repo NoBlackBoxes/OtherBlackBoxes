@@ -84,7 +84,7 @@ class block(torch.nn.Module):
 
 # Define model (which extends the NN module)
 class custom(torch.nn.Module):
-    def __init__(self, num_blocks=20, num_heads=8, hidden_dimension=64, output_dimension=2):
+    def __init__(self, num_blocks=20, num_heads=16, hidden_dimension=128, output_dimension=2):
         super(custom, self).__init__()
 
         # Attributes
@@ -97,19 +97,23 @@ class custom(torch.nn.Module):
         self.input_dimension = 3 * 16 * 16
         self.linear_embedding = torch.nn.Linear(self.input_dimension, self.hidden_dimension)
         
-        # 2) Learnable classification token
-        self.class_token = torch.nn.Parameter(torch.rand(1, self.hidden_dimension))
+        # 2) Positional embedding
+        self.register_buffer('positional_embeddings', get_positional_embeddings(self.num_patches ** 2, self.hidden_dimension), persistent=False)
         
-        # 3) Positional embedding
-        self.register_buffer('positional_embeddings', get_positional_embeddings(self.num_patches ** 2 + 1, self.hidden_dimension), persistent=False)
-        
-        # 4) Transformer encoder blocks
+        # 3) Transformer encoder blocks
         self.blocks = torch.nn.ModuleList([block(self.hidden_dimension, self.num_heads) for _ in range(self.num_blocks)])
         
-        # 5) Classification MLPk
+        # 4) Regression MLP
         self.mlp = torch.nn.Sequential(
-            torch.nn.Linear(self.hidden_dimension, output_dimension),
-            torch.nn.Softmax(dim=-1)
+            torch.nn.Flatten(),
+            torch.nn.Linear(self.hidden_dimension * 14 * 14, 128),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.2),
+            torch.nn.Linear(128, 32),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.2),
+            torch.nn.Linear(32, output_dimension),
+            torch.nn.Sigmoid()
         )
 
     # Forward
@@ -119,17 +123,12 @@ class custom(torch.nn.Module):
         
         tokens = self.linear_embedding(patches)
 
-        tokens = torch.cat((self.class_token.expand(n, 1, -1), tokens), dim=1)
-
         x = tokens + self.positional_embeddings.repeat(n, 1, 1)
 
         # Transformer Blocks
         for block in self.blocks:
             x = block(x)
         
-        # Getting the classification token only
-        x = x[:, 0]
-
         # Classify
         x = self.mlp(x)
         
