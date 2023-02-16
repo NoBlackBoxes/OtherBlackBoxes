@@ -25,7 +25,7 @@ video_path = repo_path + '/boxes/ai/tracking/_data/nose.mp4'
 
 # Load model
 custom_model = model.custom()
-custom_model.load_state_dict(torch.load(model_path))
+custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
