@@ -105,14 +105,7 @@ class custom(torch.nn.Module):
         
         # 4) Regression MLP
         self.mlp = torch.nn.Sequential(
-            torch.nn.Flatten(),
-            torch.nn.Linear(self.hidden_dimension * 14 * 14, 128),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.2),
-            torch.nn.Linear(128, 32),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.2),
-            torch.nn.Linear(32, output_dimension),
+            torch.nn.Conv2d(128, 1, kernel_size = (1,1)),
             torch.nn.Sigmoid()
         )
 
@@ -129,6 +122,10 @@ class custom(torch.nn.Module):
         for block in self.blocks:
             x = block(x)
         
+        # Rehape
+        x = x.transpose(1,2)
+        x.view(1,128,14,14)
+
         # Classify
         x = self.mlp(x)
         

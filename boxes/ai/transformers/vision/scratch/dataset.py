@@ -23,21 +23,29 @@ class custom(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image = cv2.imread(self.image_paths[idx])
         target = self.targets[idx,:]
-        # Adjust color
+
+        # Adjust image color
         if image.shape[2] == 1: # Is grayscale?
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         else:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
         # Augment (or just resize)
         if self.augment:
             image, target = augment(image, target)
         else:
             image = cv2.resize(image, (224,224))
+
+        # Generate heatmap
+        heatmap = generate_heatmap(target)
+
+        # Set transforms
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
-            target = self.target_transform(target)
-        return image, target
+            label = self.target_transform(label)
+
+        return image, heatmap
 
 # Load dataset
 def prepare(dataset_name, split):
@@ -168,5 +176,20 @@ def augment(image, target):
     augmented_target[1] = (nose_y - crop_top) / crop_height
 
     return augmented_image, augmented_target
+
+# Generate heatmap
+def generate_heatmap(target):
+    heatmap = np.zeros((224,224), dtype=np.float32)
+    x = target[0]
+    y = target[1]
+    ix = int(np.floor(x * 224))
+    iy = int(np.floor(y * 224)) 
+    heatmap[iy][ix] = 1.0
+    heatmap = cv2.GaussianBlur(heatmap, ksize=(51,51), sigmaX=9, sigmaY=9)
+    heatmap = cv2.resize(heatmap, (14,14), interpolation=cv2.INTER_LINEAR)
+    heatmap = heatmap / np.sum(heatmap[:])
+    heatmap = np.expand_dims(heatmap, axis=0)
+
+    return heatmap
 
 #FIN
