@@ -2,10 +2,12 @@ import os
 import cv2
 import torch
 import model
+import numpy as np
+import matplotlib.pyplot as plt
 from torchvision import transforms
 
 # Specify video or camera
-live_capture = True
+live_capture = False
 if live_capture:
     width = 640
     height = 480
@@ -20,7 +22,7 @@ username = os.getlogin()
 repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
 box_path = repo_path + '/boxes/ai/transformers/vision/scratch'
 model_path = box_path + '/_tmp/custom.pt'
-video_path = repo_path + '/boxes/learning/transfer/tracking/_data/nose.mp4'
+video_path = repo_path + '/boxes/ai/tracking/_data/nose.mp4'
 
 # Load model
 custom_model = model.custom()
@@ -77,27 +79,19 @@ while(True):
 
     # Extract outputs
     output = output.cpu().detach().numpy()
-    print(output)
-    x = output[0,0] * width
-    y = output[0,1] * height
+    output = np.squeeze(output)
+    resized = cv2.resize(output, (width,height))
 
-    # Smooth?
-    if smooth and (not first_frame):
-        _x = (alpha * x) + ((1 - alpha) * _x)
-        _y = (alpha * y) + ((1 - alpha) * _y)
-    else:
-        _x = x
-        _y = y
-    first_frame = False
-
-    # Draw tracked point
-    frame = cv2.circle(frame, (int(_x), int(_y)), 11, (0, 255, 255), thickness=-1)
+    # Mask
+    frame[:,:,2] = frame[:,:,0]/2 + (resized*125)
+    frame[:,:,1] = frame[:,:,1]/2
+    frame[:,:,0] = frame[:,:,2]/2
 
     # Display the resulting frame
     cv2.imshow('tracking', frame)
 
     # Wait for a keypress, and quit if 'q'
-    if cv2.waitKey(20) & 0xFF == ord('q'):
+    if cv2.waitKey(10) & 0xFF == ord('q'):
         break
 
 # Release the caputre
