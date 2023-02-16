@@ -14,23 +14,24 @@ class custom(torch.nn.Module):
         for param in backbone.parameters():
             param.requires_grad = True
         
-        ## Unfreeze last layers
-        #for b in range(11,7):
-        #    for param in backbone.blocks[b].parameters():
-        #        param.requires_grad = True
+        # Unfreeze last blocks
+        for b in range(5,12):
+            for param in backbone.blocks[b].parameters():
+                param.requires_grad = False
 
         # Remove classifier (i.e. extract feature detection layers)
-        self.features =  torch.nn.Sequential(*list(backbone.children())[:-1])
+        self.features =  torch.nn.Sequential(*list(backbone.children())[:-2])
 
         # Add a new prediction head
-        self.pool = torch.nn.AvgPool1d(768)
+        self.conv = torch.nn.Conv1d(768, 1, kernel_size=1)
         self.sigmoid = torch.nn.Sigmoid()
 
     # Forward
     def forward(self, x):
         n, c, h, w = x.shape
         x = self.features(x)
-        x = self.pool(x)
+        x = x.transpose(2,1)
+        x = self.conv(x)
         x = self.sigmoid(x)
         x = x.view(n,1,14,14)
 
