@@ -84,7 +84,7 @@ class block(torch.nn.Module):
 
 # Define model (which extends the NN module)
 class custom(torch.nn.Module):
-    def __init__(self, num_blocks=20, num_heads=16, hidden_dimension=128, output_dimension=2):
+    def __init__(self, num_blocks=20, num_heads=16, hidden_dimension=256):
         super(custom, self).__init__()
 
         # Attributes
@@ -94,7 +94,8 @@ class custom(torch.nn.Module):
         self.hidden_dimension = hidden_dimension
 
         # 1) Linear embedding
-        self.input_dimension = 3 * 16 * 16
+        patch_dim = 224 // self.num_patches
+        self.input_dimension = 3 * patch_dim * patch_dim
         self.linear_embedding = torch.nn.Linear(self.input_dimension, self.hidden_dimension)
         
         # 2) Positional embedding
@@ -105,7 +106,7 @@ class custom(torch.nn.Module):
         
         # 4) Regression MLP
         self.mlp = torch.nn.Sequential(
-            torch.nn.AvgPool1d(128),
+            torch.nn.AvgPool1d(self.hidden_dimension),
             torch.nn.Sigmoid()
         )
 
@@ -125,8 +126,8 @@ class custom(torch.nn.Module):
         # Classify
         x = self.mlp(x)
 
-        # Rehape
-        x = x.view(n,1,14,14)
+        # Reshape
+        x = x.view(n,1,self.num_patches,self.num_patches)
         
         return x
 
