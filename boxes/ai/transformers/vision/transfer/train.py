@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 import torch
 from torchvision import transforms
 from torchsummary import summary
@@ -59,7 +60,7 @@ custom_model = model.custom()
 
 # Set loss function
 loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
@@ -127,6 +128,7 @@ outputs = custom_model(train_features_gpu)
 outputs = outputs.cpu().detach().numpy()
 
 # Examine predictions
+plt.figure()
 for i in range(9):
     plt.subplot(3,3,i+1)
     feature = train_features[i]
