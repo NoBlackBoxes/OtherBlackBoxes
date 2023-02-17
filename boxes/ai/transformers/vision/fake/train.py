@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision import transforms
 from torchsummary import summary
+import cv2
 
 # Locals libs
 import model
@@ -19,7 +20,7 @@ username = os.getlogin()
 
 # Specify paths
 repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/transformers/vision/transfer'
+box_path = repo_path + '/boxes/ai/transformers/vision/fake'
 output_path = box_path + '/_tmp'
 
 # Specify transforms for inputs
@@ -28,29 +29,27 @@ preprocess = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-# Prepare datasets
-train_data, test_data = dataset.prepare('train2017', 0.8)
-
 # Create datasets
-train_dataset = dataset.custom(image_paths=train_data[0], targets=train_data[1], transform=preprocess, augment=True)
-test_dataset = dataset.custom(image_paths=test_data[0], targets=test_data[1], transform=preprocess, augment=True)
+train_dataset = dataset.custom(num_fakes=5000, transform=preprocess)
+test_dataset = dataset.custom(num_fakes=1000, transform=preprocess)
 
 # Create data loaders
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True)
 
 # Inspect dataset?
-inspect = False
+inspect = True
 if inspect:
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
         plt.subplot(3,3,i+1)
         feature = train_features[i]
-        target = train_targets[i]
+        target = np.squeeze(train_targets[i].numpy())
         feature = (feature + 2.0) / 4.0
         image = np.transpose(feature, (1,2,0))
-        plt.imshow(image)
-        plt.plot(target[0] * 224, target[1] * 224, 'g+', markersize=15,)
+        heatmap = cv2.resize(target, (224,224))
+        plt.imshow(image, alpha=0.75)
+        plt.imshow(heatmap, alpha=0.5)
     plt.show()
 
 # Instantiate model
@@ -139,10 +138,7 @@ for i in range(9):
     plt.imshow(image, alpha=0.75)
     plt.imshow(predicted_heatmap, alpha=0.5)
     #plt.imshow(target_heatmap, alpha=0.5)
-plt.savefig(output_path + '/result.png')
-
-
-
+plt.show()
 
 
 
