@@ -12,12 +12,12 @@ class custom(torch.nn.Module):
 
         # Freeze the backbone weights
         for param in backbone.parameters():
-            param.requires_grad = True
+            param.requires_grad = False
         
         # Unfreeze last blocks
         for b in range(5,12):
             for param in backbone.blocks[b].parameters():
-                param.requires_grad = False
+                param.requires_grad = True
 
         # Remove classifier (i.e. extract feature detection layers)
         self.features =  torch.nn.Sequential(*list(backbone.children())[:-2])

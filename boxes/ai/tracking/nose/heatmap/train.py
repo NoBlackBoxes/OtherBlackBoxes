@@ -81,6 +81,7 @@ def train(dataloader, model, loss_fn, optimizer):
         # Compute prediction error
         pred = custom_model(X)
         loss = loss_fn(pred, y)
+        #print(" - range: {0:.3f} to {1:.3f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation
         optimizer.zero_grad()

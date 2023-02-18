@@ -37,8 +37,8 @@ train_dataset = dataset.custom(image_paths=train_data[0], targets=train_data[1],
 test_dataset = dataset.custom(image_paths=test_data[0], targets=test_data[1], transform=preprocess, augment=True)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=100, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True)
 
 # Inspect dataset?
 inspect = False
@@ -58,8 +58,14 @@ if inspect:
 importlib.reload(model)
 custom_model = model.custom()
 
+# Define loss function
+def custom_loss(output, target):
+    diff = (output - target)
+    loss = torch.mean(diff**2)
+    return loss
+
 # Set loss function
-loss_fn = torch.nn.MSELoss()
+loss_fn = custom_loss
 optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.001)
 
 # Get cpu or gpu device for training.
@@ -80,6 +86,7 @@ def train(dataloader, model, loss_fn, optimizer):
         # Compute prediction error
         pred = custom_model(X)
         loss = loss_fn(pred, y)
+        print(" - range: {0:.6f} to {1:.6f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation
         optimizer.zero_grad()
@@ -115,8 +122,7 @@ for t in range(epochs):
 print("Done!")
 
 
-
-
+# ------------------------------------------------------------------------
 # Display image and label.
 train_features, train_targets = next(iter(test_dataloader))
 print(f"Feature batch shape: {train_features.size()}")
@@ -142,8 +148,7 @@ for i in range(9):
     plt.imshow(predicted_heatmap, alpha=0.5)
     #plt.imshow(target_heatmap, alpha=0.5)
 plt.savefig(output_path + '/result.png')
-
-
+# ------------------------------------------------------------------------
 
 
 
