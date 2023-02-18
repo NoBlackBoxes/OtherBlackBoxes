@@ -141,9 +141,9 @@ for i in range(9):
     target_heatmap = cv2.resize(target, (224,224))
     output = np.squeeze(outputs[i])
     predicted_heatmap = cv2.resize(output, (224,224))
-    plt.imshow(image, alpha=0.75)
+    #plt.imshow(image, alpha=0.75)
     plt.imshow(predicted_heatmap, alpha=0.5)
-    #plt.imshow(target_heatmap, alpha=0.5)
+    plt.imshow(target_heatmap, alpha=0.5)
 plt.show()
 
 

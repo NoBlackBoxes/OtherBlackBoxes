@@ -22,8 +22,6 @@ class custom(torch.utils.data.Dataset):
         x = np.random.randint(0,224)
         y = np.random.randint(0,224)
         image[y,x] = 255
-        x = np.random.randint(0,224)
-        y = np.random.randint(0,224)
         target = np.array([x / 224.0, y /224.0])
 
         # Generate heatmap
