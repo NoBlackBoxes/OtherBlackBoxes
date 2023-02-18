@@ -23,16 +23,18 @@ class custom(torch.nn.Module):
         self.features =  torch.nn.Sequential(*list(backbone.children())[:-2])
 
         # Add a new prediction head
-        self.conv = torch.nn.Conv1d(768, 1, kernel_size=1)
+        self.pool = torch.nn.AvgPool1d(768)
+        #self.norm = torch.nn.LayerNorm(196)
         self.sigmoid = torch.nn.Sigmoid()
 
     # Forward
     def forward(self, x):
         n, c, h, w = x.shape
         x = self.features(x)
+        x = self.pool(x)
         x = x.transpose(2,1)
-        x = self.conv(x)
         x = self.sigmoid(x)
+        #x = self.norm(x)
         x = x.view(n,1,14,14)
 
         return x

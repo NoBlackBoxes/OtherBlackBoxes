@@ -37,8 +37,8 @@ train_dataset = dataset.custom(image_paths=train_data[0], targets=train_data[1],
 test_dataset = dataset.custom(image_paths=test_data[0], targets=test_data[1], transform=preprocess, augment=True)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=100, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=True)
 
 # Inspect dataset?
 inspect = False
@@ -60,7 +60,7 @@ custom_model = model.custom()
 
 # Set loss function
 loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.001)
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
@@ -138,7 +138,7 @@ for i in range(9):
     target_heatmap = cv2.resize(target, (224,224))
     output = np.squeeze(outputs[i])
     predicted_heatmap = cv2.resize(output, (224,224))
-    plt.imshow(image, alpha=0.75)
+    #plt.imshow(image, alpha=0.75)
     plt.imshow(predicted_heatmap, alpha=0.5)
     #plt.imshow(target_heatmap, alpha=0.5)
 plt.savefig(output_path + '/result.png')
