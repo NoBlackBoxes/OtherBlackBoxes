@@ -56,11 +56,17 @@ if inspect:
 importlib.reload(model)
 custom_model = model.custom()
 
-# Set loss function
-loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.001)
+# Define loss function
+def custom_loss(output, target):
+    diff = (output - target)
+    loss = torch.mean(diff**2)
+    return loss
 
-# Get cpu or gpu device for training.
+# Set loss function
+loss_fn = custom_loss
+optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
+
+# Get cpu or gpu device for training
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using {device} device")
 

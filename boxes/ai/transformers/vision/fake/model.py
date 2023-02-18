@@ -32,7 +32,7 @@ class custom(torch.nn.Module):
         x = self.features(x)
         x = x.transpose(2,1)
         x = self.conv(x)
-        x = self.sigmoid(x)
+        #x = self.sigmoid(x)
         x = x.view(n,1,14,14)
 
         return x
