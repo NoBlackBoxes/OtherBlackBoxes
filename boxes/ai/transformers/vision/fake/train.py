@@ -59,7 +59,7 @@ importlib.reload(model)
 custom_model = model.custom()
 
 # Set loss function
-loss_fn = loss_function.AdaptiveWingLoss(use_target_weight=False)
+loss_fn = loss_function.custom_loss()
 optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
 
 # Get cpu or gpu device for training
@@ -78,8 +78,8 @@ def train(dataloader, model, loss_fn, optimizer):
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
-        pred = custom_model(X)
-        loss = loss_fn(pred, y, None)
+        pred = model(X)
+        loss = loss_fn(pred, y)
         print(" - range: {0:.6f} to {1:.6f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation
@@ -129,6 +129,7 @@ outputs = custom_model(train_features_gpu)
 outputs = outputs.cpu().detach().numpy()
 
 # Examine predictions
+plt.figure()
 for i in range(9):
     plt.subplot(3,3,i+1)
     feature = train_features[i]
@@ -141,9 +142,8 @@ for i in range(9):
     plt.imshow(image, alpha=0.75)
     plt.imshow(predicted_heatmap, alpha=0.5)
     #plt.imshow(target_heatmap, alpha=0.5)
-plt.show()
+plt.savefig(output_path + '/result.png')
 # ------------------------------------------------------------------------
-
 
 
 # Save model
