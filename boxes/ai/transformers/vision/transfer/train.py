@@ -9,11 +9,13 @@ from torchsummary import summary
 # Locals libs
 import model
 import dataset
+import loss_function
 
 # Reimport
 import importlib
 importlib.reload(dataset)
 importlib.reload(model)
+importlib.reload(loss_function)
 
 # Get user name
 username = os.getlogin()
@@ -65,7 +67,7 @@ def custom_loss(output, target):
     return loss
 
 # Set loss function
-loss_fn = custom_loss
+loss_fn = loss_function.AdaptiveWingLoss(use_target_weight=False)
 optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.001)
 
 # Get cpu or gpu device for training.
@@ -85,7 +87,7 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = custom_model(X)
-        loss = loss_fn(pred, y)
+        loss = loss_fn(pred, y, None)
         print(" - range: {0:.6f} to {1:.6f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation

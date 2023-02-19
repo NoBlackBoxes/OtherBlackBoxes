@@ -1,4 +1,5 @@
 import torch
+import timm
 
 # Define model (which extends the NN module)
 class custom(torch.nn.Module):
@@ -8,7 +9,8 @@ class custom(torch.nn.Module):
         super(custom, self).__init__()
 
         # Load backbone
-        backbone = torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=True)
+        #backbone = torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=True)
+        backbone = timm.create_model('vit_base_patch16_224', pretrained=True)
 
         # Freeze the backbone weights
         for param in backbone.parameters():
@@ -28,12 +30,12 @@ class custom(torch.nn.Module):
 
     # Forward
     def forward(self, x):
-        n, c, h, w = x.shape
+        b, c, h, w = x.shape
         x = self.features(x)
         x = x.transpose(2,1)
         x = self.conv(x)
-        #x = self.sigmoid(x)
-        x = x.view(n,1,14,14)
+        x = self.sigmoid(x)
+        x = x.permute(0, 2, 1).reshape(b, -1, 14, 14).contiguous()
 
         return x
 

@@ -9,11 +9,13 @@ import cv2
 # Locals libs
 import model
 import dataset
+import loss_function
 
 # Reimport
 import importlib
 importlib.reload(dataset)
 importlib.reload(model)
+importlib.reload(loss_function)
 
 # Get user name
 username = os.getlogin()
@@ -38,7 +40,7 @@ train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shu
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True)
 
 # Inspect dataset?
-inspect = True
+inspect = False
 if inspect:
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
@@ -56,14 +58,8 @@ if inspect:
 importlib.reload(model)
 custom_model = model.custom()
 
-# Define loss function
-def custom_loss(output, target):
-    diff = (output - target)
-    loss = torch.mean(diff**2)
-    return loss
-
 # Set loss function
-loss_fn = custom_loss
+loss_fn = loss_function.AdaptiveWingLoss(use_target_weight=False)
 optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
 
 # Get cpu or gpu device for training
@@ -83,7 +79,8 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = custom_model(X)
-        loss = loss_fn(pred, y)
+        loss = loss_fn(pred, y, None)
+        print(" - range: {0:.6f} to {1:.6f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation
         optimizer.zero_grad()
@@ -120,7 +117,7 @@ print("Done!")
 
 
 
-
+# ------------------------------------------------------------------------
 # Display image and label.
 train_features, train_targets = next(iter(test_dataloader))
 print(f"Feature batch shape: {train_features.size()}")
@@ -141,10 +138,11 @@ for i in range(9):
     target_heatmap = cv2.resize(target, (224,224))
     output = np.squeeze(outputs[i])
     predicted_heatmap = cv2.resize(output, (224,224))
-    #plt.imshow(image, alpha=0.75)
+    plt.imshow(image, alpha=0.75)
     plt.imshow(predicted_heatmap, alpha=0.5)
-    plt.imshow(target_heatmap, alpha=0.5)
+    #plt.imshow(target_heatmap, alpha=0.5)
 plt.show()
+# ------------------------------------------------------------------------
 
 
 

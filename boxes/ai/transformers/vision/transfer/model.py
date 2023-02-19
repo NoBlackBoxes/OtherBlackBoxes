@@ -14,10 +14,10 @@ class custom(torch.nn.Module):
 
         # Freeze the backbone weights
         for param in backbone.parameters():
-            param.requires_grad = True
+            param.requires_grad = False
         
         # Unfreeze last blocks
-        for b in range(7,12):
+        for b in range(5,12):
             for param in backbone.blocks[b].parameters():
                 param.requires_grad = True
 
@@ -25,36 +25,17 @@ class custom(torch.nn.Module):
         self.features =  torch.nn.Sequential(*list(backbone.children())[:-1])
 
         # Add a new prediction head
-        self.pool = torch.nn.AvgPool1d(768)
-        self.linear1 = torch.nn.Linear(768, 1)
-        self.linear2 = torch.nn.Linear(512, 512)
-        self.linear3 = torch.nn.Linear(512, 196)
-        self.relu1 = torch.nn.ReLU()
-        self.relu2 = torch.nn.ReLU()
-        #self.conv = torch.nn.Conv1d(768, 1, kernel_size=1)
-        self.conv = torch.nn.Conv1d(768, 1, kernel_size=2)
+        self.conv = torch.nn.Conv1d(768, 1, kernel_size=1)
         self.sigmoid = torch.nn.Sigmoid()
 
     # Forward
     def forward(self, x):
-        n, c, h, w = x.shape
+        b, c, h, w = x.shape
         x = self.features(x)
-        x = self.pool(x)
-        #x = x.transpose(2,1)
-        #x = self.linear1(x)
-        #x = self.relu1(x)
-        #x = self.linear2(x)
-        #x = self.relu2(x)
-        #x = self.linear3(x)
-
-        #x = x.transpose(2,1)
-        #x = self.conv(x)
-        
-        #x = x.transpose(2,1)
-        #x = self.linear1(x)
-
-        x = self.sigmoid(x) * 100
-        x = x.view(n,1,14,14)
+        x = x.transpose(2,1)
+        x = self.conv(x)
+        x = self.sigmoid(x)
+        x = x.permute(0, 2, 1).reshape(b, -1, 14, 14).contiguous()
 
         return x
 
