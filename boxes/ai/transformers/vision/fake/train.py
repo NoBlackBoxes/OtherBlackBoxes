@@ -9,13 +9,13 @@ import cv2
 # Locals libs
 import model
 import dataset
-import loss_function
+import loss
 
 # Reimport
 import importlib
 importlib.reload(dataset)
 importlib.reload(model)
-importlib.reload(loss_function)
+importlib.reload(loss)
 
 # Get user name
 username = os.getlogin()
@@ -36,11 +36,11 @@ train_dataset = dataset.custom(num_fakes=5000, transform=preprocess)
 test_dataset = dataset.custom(num_fakes=1000, transform=preprocess)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=100, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=True)
 
 # Inspect dataset?
-inspect = False
+inspect = True
 if inspect:
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
@@ -59,7 +59,7 @@ importlib.reload(model)
 custom_model = model.custom()
 
 # Set loss function
-loss_fn = loss_function.custom_loss()
+loss_function = loss.custom_loss()
 optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
 
 # Get cpu or gpu device for training
@@ -111,8 +111,8 @@ def test(dataloader, model, loss_fn):
 epochs = 250
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader, custom_model, loss_fn, optimizer)
-    test(test_dataloader, custom_model, loss_fn)
+    train(train_dataloader, custom_model, loss_function, optimizer)
+    test(test_dataloader, custom_model, loss_function)
 print("Done!")
 
 
