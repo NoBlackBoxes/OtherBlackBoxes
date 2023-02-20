@@ -64,6 +64,12 @@ if inspect:
 importlib.reload(model)
 custom_model = model.custom()
 
+
+# Reload saved model
+model_path = model_path = box_path + '/_tmp/custom.pt'
+custom_model = model.custom()
+custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+
 # Set loss function
 custom_loss = loss.custom_loss()
 
