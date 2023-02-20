@@ -9,15 +9,15 @@ class custom(torch.nn.Module):
         super(custom, self).__init__()
 
         # Load backbone
-        #backbone = torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=True)
-        backbone = timm.create_model('vit_base_patch16_224', pretrained=True)
+        backbone = torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=True)
+        #backbone = timm.create_model('vit_base_patch16_224', pretrained=True)
 
         # Freeze the backbone weights
         for param in backbone.parameters():
-            param.requires_grad = False
+            param.requires_grad = True
         
         # Unfreeze last blocks
-        for b in range(5,12):
+        for b in range(7,12):
             for param in backbone.blocks[b].parameters():
                 param.requires_grad = True
 

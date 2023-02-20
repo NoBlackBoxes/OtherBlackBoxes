@@ -1,32 +1,37 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
 import torch
 from torchvision import transforms
 from torchsummary import summary
+import cv2
+from torch.nn.utils import clip_grad_norm_
 
 # Locals libs
 import model
 import dataset
+import loss
+import optimizer
 
 # Reimport
 import importlib
 importlib.reload(dataset)
 importlib.reload(model)
+importlib.reload(loss)
+importlib.reload(optimizer)
 
 # Get user name
 username = os.getlogin()
 
 # Specify paths
 repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/transformers/vision/transfer'
+box_path = repo_path + '/boxes/ai/transformers/vision/fake'
 output_path = box_path + '/_tmp'
 
 # Specify transforms for inputs
 preprocess = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(mean=[0.5000, 0.5000, 0.5000], std=[0.5000, 0.5000, 0.5000]),
 ])
 
 # Prepare datasets
@@ -47,11 +52,12 @@ if inspect:
     for i in range(9):
         plt.subplot(3,3,i+1)
         feature = train_features[i]
-        target = train_targets[i]
+        target = np.squeeze(train_targets[i].numpy())
         feature = (feature + 2.0) / 4.0
         image = np.transpose(feature, (1,2,0))
-        plt.imshow(image)
-        plt.plot(target[0] * 224, target[1] * 224, 'g+', markersize=15,)
+        heatmap = cv2.resize(target, (224,224))
+        plt.imshow(image, alpha=0.75)
+        plt.imshow(heatmap, alpha=0.5)
     plt.show()
 
 # Instantiate model
@@ -59,10 +65,17 @@ importlib.reload(model)
 custom_model = model.custom()
 
 # Set loss function
-loss_function = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
+custom_loss = loss.custom_loss()
 
-# Get cpu or gpu device for training.
+# Set optimizer
+adam_optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.0005, betas=(0.9, 0.999), weight_decay=0.1)
+
+# Layer-wise learning rate decay
+#lr_mult = [cfg.optimizer['paramwise_cfg']['layer_decay_rate']] * cfg.optimizer['paramwise_cfg']['num_layers']
+lr_mult = [0.75] * 12
+custom_optimizer = optimizer.LayerDecayOptimizer(adam_optimizer, lr_mult)
+
+# Get cpu or gpu device for training
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using {device} device")
 
@@ -71,38 +84,39 @@ custom_model.to(device)
 summary(custom_model, (3, 224, 224))
 
 # Define training
-def train(dataloader, _model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
+def train(_dataloader, _model, _loss_function, _optimizer):
+    size = len(_dataloader.dataset)
     _model.train()
-    for batch, (X, y) in enumerate(dataloader):
+    for batch, (X, y) in enumerate(_dataloader):
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
-        predictions = _model(X)
-        train_loss = loss_fn(predictions, y)
-        print(" - range: {0:.6f} to {1:.6f}".format(predictions[0].min(), predictions[0].max()))
+        pred = _model(X)
+        loss = _loss_function(pred, y)
+        print(" - range: {0:.6f} to {1:.6f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation
-        optimizer.zero_grad()
-        train_loss.backward()
-        optimizer.step()
+        _optimizer.zero_grad()
+        loss.backward()
+        clip_grad_norm_(_model.parameters(), max_norm=1., norm_type=2)
+        _optimizer.step()
 
-        # Report
-        train_loss, current = train_loss.item(), batch * len(X)
-        pixel_loss = np.sqrt(train_loss) * 224.0
-        print(f"loss: {train_loss:>7f}  [{current:>5d}/{size:>5d}], pixel_loss: {pixel_loss:>5f}")
+        if batch % 2 == 0:
+            loss, current = loss.item(), batch * len(X)
+            pixel_loss = np.sqrt(loss) * 224.0
+            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}], pixel_loss: {pixel_loss:>5f}")
 
 # Define testing
-def test(dataloader, _model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
+def test(_dataloader, _model, _loss_function):
+    size = len(_dataloader.dataset)
+    num_batches = len(_dataloader)
     _model.eval()
     test_loss = 0.0
     with torch.no_grad():
-        for X, y in dataloader:
+        for X, y in _dataloader:
             X, y = X.to(device), y.to(device)
-            predictions = _model(X)
-            test_loss += loss_fn(predictions, y).item()
+            pred = _model(X)
+            test_loss += _loss_function(pred, y).item()
     test_loss /= num_batches
     pixel_loss = np.sqrt(test_loss) * 224.0
     print(f"Test Error: \n Avg loss: {test_loss:>8f}, pixel_loss: {pixel_loss:>5f}\n")
@@ -111,9 +125,10 @@ def test(dataloader, _model, loss_fn):
 epochs = 250
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader, custom_model, loss_function, optimizer)
-    test(test_dataloader, custom_model, loss_function)
+    train(train_dataloader, custom_model, custom_loss, custom_optimizer)
+    test(test_dataloader, custom_model, custom_loss)
 print("Done!")
+
 
 
 # ------------------------------------------------------------------------
@@ -145,10 +160,7 @@ plt.savefig(output_path + '/result.png')
 # ------------------------------------------------------------------------
 
 
-
-
 # Save model
 torch.save(custom_model.state_dict(), output_path + '/custom.pt')
-
 
 # FIN

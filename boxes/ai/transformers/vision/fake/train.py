@@ -5,17 +5,20 @@ import torch
 from torchvision import transforms
 from torchsummary import summary
 import cv2
+from torch.nn.utils import clip_grad_norm_
 
 # Locals libs
 import model
 import dataset
 import loss
+import optimizer
 
 # Reimport
 import importlib
 importlib.reload(dataset)
 importlib.reload(model)
 importlib.reload(loss)
+importlib.reload(optimizer)
 
 # Get user name
 username = os.getlogin()
@@ -40,7 +43,7 @@ train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=100, sh
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=True)
 
 # Inspect dataset?
-inspect = True
+inspect = False
 if inspect:
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
@@ -59,8 +62,15 @@ importlib.reload(model)
 custom_model = model.custom()
 
 # Set loss function
-loss_function = loss.custom_loss()
-optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
+custom_loss = loss.custom_loss()
+
+# Set optimizer
+adam_optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.0001, betas=(0.9, 0.999), weight_decay=0.1)
+
+# Layer-wise learning rate decay
+#lr_mult = [cfg.optimizer['paramwise_cfg']['layer_decay_rate']] * cfg.optimizer['paramwise_cfg']['num_layers']
+lr_mult = [0.75] * 12
+custom_optimizer = optimizer.LayerDecayOptimizer(adam_optimizer, lr_mult)
 
 # Get cpu or gpu device for training
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
@@ -71,21 +81,22 @@ custom_model.to(device)
 summary(custom_model, (3, 224, 224))
 
 # Define training
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    model.train()
-    for batch, (X, y) in enumerate(dataloader):
+def train(_dataloader, _model, _loss_function, _optimizer):
+    size = len(_dataloader.dataset)
+    _model.train()
+    for batch, (X, y) in enumerate(_dataloader):
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
+        pred = _model(X)
+        loss = _loss_function(pred, y)
         print(" - range: {0:.6f} to {1:.6f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation
-        optimizer.zero_grad()
+        _optimizer.zero_grad()
         loss.backward()
-        optimizer.step()
+        clip_grad_norm_(_model.parameters(), max_norm=1., norm_type=2)
+        _optimizer.step()
 
         if batch % 2 == 0:
             loss, current = loss.item(), batch * len(X)
@@ -93,16 +104,16 @@ def train(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}], pixel_loss: {pixel_loss:>5f}")
 
 # Define testing
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
+def test(_dataloader, _model, _loss_function):
+    size = len(_dataloader.dataset)
+    num_batches = len(_dataloader)
+    _model.eval()
     test_loss = 0.0
     with torch.no_grad():
-        for X, y in dataloader:
+        for X, y in _dataloader:
             X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
+            pred = _model(X)
+            test_loss += _loss_function(pred, y).item()
     test_loss /= num_batches
     pixel_loss = np.sqrt(test_loss) * 224.0
     print(f"Test Error: \n Avg loss: {test_loss:>8f}, pixel_loss: {pixel_loss:>5f}\n")
@@ -111,8 +122,8 @@ def test(dataloader, model, loss_fn):
 epochs = 250
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader, custom_model, loss_function, optimizer)
-    test(test_dataloader, custom_model, loss_function)
+    train(train_dataloader, custom_model, custom_loss, custom_optimizer)
+    test(test_dataloader, custom_model, custom_loss)
 print("Done!")
 
 

@@ -10,11 +10,14 @@ class custom(torch.nn.Module):
 
         # Load backbone
         #backbone = torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=True)
-        backbone = timm.create_model('vit_base_patch16_224', pretrained=True)
+        backbone = timm.create_model('vit_base_patch16_224', pretrained=False)
+
+        avail_pretrained_models = timm.list_models(pretrained=True)
+        len(avail_pretrained_models), avail_pretrained_models[:5]
 
         # Freeze the backbone weights
         for param in backbone.parameters():
-            param.requires_grad = False
+            param.requires_grad = True
         
         # Unfreeze last blocks
         for b in range(7,12):
@@ -42,18 +45,8 @@ class custom(torch.nn.Module):
         x = self.features(x)
         x = self.pool(x)
         x = x.transpose(2,1)
-        x = self.linear1(x)
-        x = self.relu1(x)
-        x = self.linear2(x)
         x = self.sigmoid(x)
         x = x.reshape(b, -1, 14, 14).contiguous()
-
-        #x = self.conv1(x)
-        #x = self.bn1(x)
-        #x = self.relu1(x)
-        #x = self.conv2(x)
-        #x = self.bn2(x)
-        #x = self.relu2(x)
 
         return x
 
