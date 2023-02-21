@@ -186,7 +186,7 @@ def generate_heatmap(target):
     iy = int(np.floor(y * 224)) 
     heatmap[iy][ix] = 1.0
     heatmap = cv2.GaussianBlur(heatmap, ksize=(51,51), sigmaX=9, sigmaY=9)
-    heatmap = cv2.resize(heatmap, (14,14), interpolation=cv2.INTER_LINEAR)
+    heatmap = cv2.resize(heatmap, (31,31), interpolation=cv2.INTER_LINEAR)
     heatmap = heatmap / np.sum(heatmap[:])
     heatmap = np.expand_dims(heatmap, axis=0)
 

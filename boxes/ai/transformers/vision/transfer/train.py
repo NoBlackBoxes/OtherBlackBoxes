@@ -25,7 +25,7 @@ username = os.getlogin()
 
 # Specify paths
 repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/transformers/vision/fake'
+box_path = repo_path + '/boxes/ai/transformers/vision/transfer'
 output_path = box_path + '/_tmp'
 
 # Specify transforms for inputs
@@ -42,8 +42,8 @@ train_dataset = dataset.custom(image_paths=train_data[0], targets=train_data[1],
 test_dataset = dataset.custom(image_paths=test_data[0], targets=test_data[1], transform=preprocess, augment=True)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=True)
 
 # Inspect dataset?
 inspect = False
@@ -64,17 +64,16 @@ if inspect:
 importlib.reload(model)
 custom_model = model.custom()
 
-
-# Reload saved model
-model_path = model_path = box_path + '/_tmp/custom.pt'
-custom_model = model.custom()
-custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+## Reload saved model
+#model_path = model_path = box_path + '/_tmp/custom.pt'
+#custom_model = model.custom()
+#custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 
 # Set loss function
 custom_loss = loss.custom_loss()
 
 # Set optimizer
-adam_optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.0005, betas=(0.9, 0.999), weight_decay=0.1)
+adam_optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.001, betas=(0.9, 0.999), weight_decay=0.1)
 
 # Layer-wise learning rate decay
 #lr_mult = [cfg.optimizer['paramwise_cfg']['layer_decay_rate']] * cfg.optimizer['paramwise_cfg']['num_layers']
@@ -164,7 +163,6 @@ for i in range(9):
     #plt.imshow(target_heatmap, alpha=0.5)
 plt.savefig(output_path + '/result.png')
 # ------------------------------------------------------------------------
-
 
 # Save model
 torch.save(custom_model.state_dict(), output_path + '/custom.pt')
