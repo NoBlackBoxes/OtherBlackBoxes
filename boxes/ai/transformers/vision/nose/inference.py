@@ -20,7 +20,7 @@ username = os.getlogin()
 
 # Specify paths
 repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/transformers/vision/transfer'
+box_path = repo_path + '/boxes/ai/transformers/vision/nose'
 model_path = box_path + '/_tmp/custom.pt'
 video_path = repo_path + '/boxes/ai/tracking/_data/nose.mp4'
 

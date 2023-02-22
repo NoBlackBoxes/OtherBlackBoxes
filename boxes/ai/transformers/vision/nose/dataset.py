@@ -125,9 +125,17 @@ def filter(dataset_name):
         # Normalize nose centroid
         width = img['width']
         height = img['height']
-        x = np.float32(nose_x) / width
-        y = np.float32(nose_y) / height
-        target = np.array([x, y], dtype=np.float32)
+        nx = np.float32(nose_x) / width
+        ny = np.float32(nose_y) / height
+
+        # Normalize eye centroids
+        lx = np.float32(l_eye_x) / width
+        ly = np.float32(l_eye_y) / height
+        rx = np.float32(r_eye_x) / width
+        ry = np.float32(r_eye_y) / height
+
+        #target = np.array([nx, ny, lx, ly, rx, ry], dtype=np.float32)
+        target = np.array([nx, ny], dtype=np.float32)
 
         # Store dataset
         image_paths.append(images_folder + '/' + img['file_name'])
@@ -187,7 +195,7 @@ def generate_heatmap(target):
     heatmap[iy][ix] = 1.0
     heatmap = cv2.GaussianBlur(heatmap, ksize=(51,51), sigmaX=9, sigmaY=9)
     heatmap = cv2.resize(heatmap, (31,31), interpolation=cv2.INTER_LINEAR)
-    heatmap = heatmap / np.sum(heatmap[:])
+    heatmap = heatmap / np.max(heatmap[:])
     heatmap = np.expand_dims(heatmap, axis=0)
 
     return heatmap
