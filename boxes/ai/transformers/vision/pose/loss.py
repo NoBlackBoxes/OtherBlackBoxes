@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 class custom_loss(nn.Module):
 
     def __init__(self):
@@ -23,3 +22,5 @@ class custom_loss(nn.Module):
             loss += self.criterion(heatmap_pred, heatmap_gt)
 
         return loss / num_joints
+
+#FIN
