@@ -1,65 +1,76 @@
 import torch
 import numpy as np
+from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 
-# Define multi-head-self-attention
-class mhsa(torch.nn.Module):
-    def __init__(self, d, num_heads=2):
-        super(mhsa, self).__init__()
-        self.d = d
-        self.num_heads = num_heads
+class PreNorm(torch.nn.Module):
+    def __init__(self, dim, fn):
+        super().__init__()
+        self.norm = torch.nn.LayerNorm(dim)
+        self.fn = fn
+    def forward(self, x, **kwargs):
+        return self.fn(self.norm(x), **kwargs)
 
-        assert d % num_heads == 0, f"Can't divide dimension {d} into {num_heads} heads"
-
-        d_head = int(d / num_heads)
-        self.q_mappings = torch.nn.ModuleList([torch.nn.Linear(d_head, d_head) for _ in range(self.num_heads)])
-        self.k_mappings = torch.nn.ModuleList([torch.nn.Linear(d_head, d_head) for _ in range(self.num_heads)])
-        self.v_mappings = torch.nn.ModuleList([torch.nn.Linear(d_head, d_head) for _ in range(self.num_heads)])
-        self.d_head = d_head
-        self.softmax =torch.nn.Softmax(dim=-1)
-
-    def forward(self, sequences):
-        # Sequences has shape (N, seq_length, token_dim)
-        # We go into shape    (N, seq_length, n_heads, token_dim / n_heads)
-        # And come back to    (N, seq_length, item_dim)  (through concatenation)
-        result = []
-        for sequence in sequences:
-            seq_result = []
-            for head in range(self.num_heads):
-                q_mapping = self.q_mappings[head]
-                k_mapping = self.k_mappings[head]
-                v_mapping = self.v_mappings[head]
-
-                seq = sequence[:, head * self.d_head: (head + 1) * self.d_head]
-                q, k, v = q_mapping(seq), k_mapping(seq), v_mapping(seq)
-
-                attention = self.softmax(q @ k.T / (self.d_head ** 0.5))
-                seq_result.append(attention @ v)
-            result.append(torch.hstack(seq_result))
-        return torch.cat([torch.unsqueeze(r, dim=0) for r in result])
-
-# Define transformer block
-class block(torch.nn.Module):
-    def __init__(self, hidden_dimension, num_heads, mlp_ratio=4):
-        super(block, self).__init__()
-
-        # Attributes
-        self.hidden_dimension = hidden_dimension
-        self.num_heads = num_heads
-
-        self.norm1 = torch.nn.LayerNorm(hidden_dimension)
-        self.mhsa = mhsa(hidden_dimension, num_heads)
-        self.norm2 = torch.nn.LayerNorm(hidden_dimension)
-        self.mlp = torch.nn.Sequential(
-            torch.nn.Linear(hidden_dimension, mlp_ratio * hidden_dimension),
+class FeedForward(torch.nn.Module):
+    def __init__(self, dim, hidden_dim, dropout = 0.):
+        super().__init__()
+        self.net = torch.nn.Sequential(
+            torch.nn.Linear(dim, hidden_dim),
             torch.nn.GELU(),
-            torch.nn.Linear(mlp_ratio * hidden_dimension, hidden_dimension)
+            torch.nn.Dropout(dropout),
+            torch.nn.Linear(hidden_dim, dim),
+            torch.nn.Dropout(dropout)
         )
+    def forward(self, x):
+        return self.net(x)
+
+# Define multi-head-self-attention
+class Attention(torch.nn.Module):
+    def __init__(self, dim, heads = 8, dim_head = 64, dropout = 0.):
+        super().__init__()
+        inner_dim = dim_head *  heads
+        project_out = not (heads == 1 and dim_head == dim)
+
+        self.heads = heads
+        self.scale = dim_head ** -0.5
+
+        self.attend = torch.nn.Softmax(dim = -1)
+        self.dropout = torch.nn.Dropout(dropout)
+
+        self.to_qkv = torch.nn.Linear(dim, inner_dim * 3, bias = False)
+
+        self.to_out = torch.nn.Sequential(
+            torch.nn.Linear(inner_dim, dim),
+            torch.nn.Dropout(dropout)
+        ) if project_out else torch.nn.Identity()
 
     def forward(self, x):
-        out = x + self.mhsa(self.norm1(x))
-        out = out + self.mlp(self.norm2(out))
-        return out
+        qkv = self.to_qkv(x).chunk(3, dim = -1)
+        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), qkv)
+
+        dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
+
+        attn = self.attend(dots)
+        attn = self.dropout(attn)
+
+        out = torch.matmul(attn, v)
+        out = rearrange(out, 'b h n d -> b n (h d)')
+        return self.to_out(out)
+
+class Transformer(torch.nn.Module):
+    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
+        super().__init__()
+        self.layers = torch.nn.ModuleList([])
+        for _ in range(depth):
+            self.layers.append(torch.nn.ModuleList([
+                PreNorm(dim, Attention(dim, heads = heads, dim_head = dim_head, dropout = dropout)),
+                PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
+            ]))
+    def forward(self, x):
+        for attn, ff in self.layers:
+            x = attn(x) + x
+            x = ff(x) + x
+        return x
 
 # Define model (which extends the NN module)
 class custom(torch.nn.Module):
@@ -86,8 +97,8 @@ class custom(torch.nn.Module):
         self.pos_embedding = torch.nn.Parameter(torch.randn(1, self.num_patches, self.hidden_dimension))
 
         # Transformer encoder blocks
-        self.blocks = torch.nn.ModuleList([block(self.hidden_dimension, self.num_heads) for _ in range(self.num_blocks)])
-        
+        self.transformer = Transformer(self.hidden_dimension, self.num_blocks, self.num_heads, dim_head=64, mlp_dim=1024, dropout=0.1)
+
         # Prediction head
         self.head = torch.nn.Conv2d(in_channels=self.hidden_dimension, out_channels=1, kernel_size=1, stride=1, padding=0)
 
@@ -100,8 +111,7 @@ class custom(torch.nn.Module):
         x += self.pos_embedding
         
         # Transformer Blocks
-        for block in self.blocks:
-            x = block(x)
+        x = self.transformer(x)
         
         # Final
         x = x.reshape(b, -1, 14, 14).contiguous()
