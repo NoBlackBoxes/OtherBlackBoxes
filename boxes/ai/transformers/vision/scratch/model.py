@@ -74,7 +74,7 @@ class Transformer(torch.nn.Module):
 
 # Define model (which extends the NN module)
 class custom(torch.nn.Module):
-    def __init__(self, num_blocks=20, num_heads=16, hidden_dimension=768):
+    def __init__(self, num_blocks=12, num_heads=12, hidden_dimension=768):
         super(custom, self).__init__()
 
         # Attributes
@@ -97,7 +97,7 @@ class custom(torch.nn.Module):
         self.pos_embedding = torch.nn.Parameter(torch.randn(1, self.num_patches, self.hidden_dimension))
 
         # Transformer encoder blocks
-        self.transformer = Transformer(self.hidden_dimension, self.num_blocks, self.num_heads, dim_head=64, mlp_dim=1024, dropout=0.1)
+        self.transformer = Transformer(self.hidden_dimension, self.num_blocks, self.num_heads, dim_head=64, mlp_dim=3072, dropout=0.1)
 
         # Prediction head
         self.head = torch.nn.Conv2d(in_channels=self.hidden_dimension, out_channels=1, kernel_size=1, stride=1, padding=0)

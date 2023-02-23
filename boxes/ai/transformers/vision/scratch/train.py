@@ -9,6 +9,7 @@ from torch.nn.utils import clip_grad_norm_
 
 # Locals libs
 import model
+#import fake as dataset
 import dataset
 import loss
 import optimizer
@@ -45,8 +46,18 @@ test_dataset = dataset.custom(image_paths=test_data[0], targets=test_data[1], tr
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=True)
 
+### FAKE
+## Create datasets
+#train_dataset = dataset.custom(num_fakes=5000, transform=preprocess)
+#test_dataset = dataset.custom(num_fakes=1000, transform=preprocess)
+#
+## Create data loaders
+#train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=100, shuffle=True)
+#test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=True)
+### FAKE
+
 # Inspect dataset?
-inspect = False
+inspect = True
 if inspect:
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
@@ -58,6 +69,7 @@ if inspect:
         heatmap = cv2.resize(target, (224,224))
         plt.imshow(image, alpha=0.75)
         plt.imshow(heatmap, alpha=0.5)
+    plt.savefig(output_path + '/inspect.png')
     plt.show()
 
 # Instantiate model
@@ -73,7 +85,7 @@ custom_model = model.custom()
 custom_loss = loss.custom_loss()
 
 # Set optimizer
-adam_optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.0005, betas=(0.9, 0.999), weight_decay=0.1)
+adam_optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.00005, betas=(0.9, 0.999), weight_decay=0.1)
 
 # Layer-wise learning rate decay
 #lr_mult = [cfg.optimizer['paramwise_cfg']['layer_decay_rate']] * cfg.optimizer['paramwise_cfg']['num_layers']
