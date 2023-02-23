@@ -74,7 +74,7 @@ class Transformer(torch.nn.Module):
 
 # Define model (which extends the NN module)
 class custom(torch.nn.Module):
-    def __init__(self, num_blocks=20, num_heads=16, hidden_dimension=256):
+    def __init__(self, num_blocks=20, num_heads=16, hidden_dimension=768):
         super(custom, self).__init__()
 
         # Attributes
