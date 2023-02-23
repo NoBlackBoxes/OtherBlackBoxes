@@ -1,27 +1,6 @@
 import torch
 import numpy as np
-
-# Patchify input batch
-def patchify(input_batch, num_patches):
-    n, c, h, w = input_batch.shape
-
-    patches = torch.zeros(n, num_patches ** 2, h * w * c // num_patches ** 2)
-    patch_size = h // num_patches
-
-    for idx, image in enumerate(input_batch):
-        for i in range(num_patches):
-            for j in range(num_patches):
-                patch = image[:, i * patch_size: (i + 1) * patch_size, j * patch_size: (j + 1) * patch_size]
-                patches[idx, i * num_patches + j] = patch.flatten()
-    return patches
-
-# Positional embeddings
-def get_positional_embeddings(sequence_length, d):
-    result = torch.ones(sequence_length, d)
-    for i in range(sequence_length):
-        for j in range(d):
-            result[i][j] = np.sin(i / (10000 ** (j / d))) if j % 2 == 0 else np.cos(i / (10000 ** ((j - 1) / d)))
-    return result
+from einops.layers.torch import Rearrange
 
 # Define multi-head-self-attention
 class mhsa(torch.nn.Module):
@@ -88,35 +67,38 @@ class custom(torch.nn.Module):
         super(custom, self).__init__()
 
         # Attributes
-        self.num_patches = 14 # 224x224 image is (14 x 14 pacthes of dimension 16x16 each)
+        self.num_patches = 14*14 # 224x224 image is (14 x 14 pacthes of dimension 16x16 each)
+        self.patch_size = 16
+        self.input_dimension = self.patch_size * self.patch_size * 3
         self.num_blocks = num_blocks
         self.num_heads = num_heads
         self.hidden_dimension = hidden_dimension
 
-        # 1) Linear embedding
-        patch_dim = 224 // self.num_patches
-        self.input_dimension = 3 * patch_dim * patch_dim
-        self.linear_embedding = torch.nn.Linear(self.input_dimension, self.hidden_dimension)
+        # Patch embedding
+        self.patch_embedding = torch.nn.Sequential(
+            Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1 = self.patch_size, p2 = self.patch_size),
+            torch.nn.LayerNorm(self.input_dimension),
+            torch.nn.Linear(self.input_dimension, self.hidden_dimension),
+            torch.nn.LayerNorm(self.hidden_dimension),
+        )
         
-        # 2) Positional embedding
-        self.register_buffer('positional_embeddings', get_positional_embeddings(self.num_patches ** 2, self.hidden_dimension), persistent=False)
-        
-        # 3) Transformer encoder blocks
+        # Positional embedding
+        self.pos_embedding = torch.nn.Parameter(torch.randn(1, self.num_patches, self.hidden_dimension))
+
+        # Transformer encoder blocks
         self.blocks = torch.nn.ModuleList([block(self.hidden_dimension, self.num_heads) for _ in range(self.num_blocks)])
         
-        # Add simple prediction head
+        # Prediction head
         self.head = torch.nn.Conv2d(in_channels=self.hidden_dimension, out_channels=1, kernel_size=1, stride=1, padding=0)
 
     # Forward
     def forward(self, x):
         b, c, h, w = x.shape
 
-        patches = patchify(x, self.num_patches).to(self.positional_embeddings.device)
+        x = self.patch_embedding(x)
+
+        x += self.pos_embedding
         
-        tokens = self.linear_embedding(patches)
-
-        x = tokens + self.positional_embeddings.repeat(b, 1, 1)
-
         # Transformer Blocks
         for block in self.blocks:
             x = block(x)
