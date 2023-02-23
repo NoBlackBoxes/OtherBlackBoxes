@@ -4,15 +4,21 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision import transforms
 from torchsummary import summary
+import cv2
+from torch.nn.utils import clip_grad_norm_
 
 # Locals libs
 import model
 import dataset
+import loss
+import optimizer
 
 # Reimport
 import importlib
 importlib.reload(dataset)
 importlib.reload(model)
+importlib.reload(loss)
+importlib.reload(optimizer)
 
 # Get user name
 username = os.getlogin()
@@ -25,7 +31,7 @@ output_path = box_path + '/_tmp'
 # Specify transforms for inputs
 preprocess = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(mean=[0.5000, 0.5000, 0.5000], std=[0.5000, 0.5000, 0.5000]),
 ])
 
 # Prepare datasets
@@ -36,32 +42,45 @@ train_dataset = dataset.custom(image_paths=train_data[0], targets=train_data[1],
 test_dataset = dataset.custom(image_paths=test_data[0], targets=test_data[1], transform=preprocess, augment=True)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True)
 
 # Inspect dataset?
-inspect = False
+inspect = True
 if inspect:
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
         plt.subplot(3,3,i+1)
         feature = train_features[i]
-        target = train_targets[i]
+        target = np.squeeze(train_targets[i].numpy())
         feature = (feature + 2.0) / 4.0
         image = np.transpose(feature, (1,2,0))
-        plt.imshow(image)
-        plt.plot(target[0] * 224, target[1] * 224, 'g+', markersize=15,)
+        heatmap = cv2.resize(target, (224,224))
+        plt.imshow(image, alpha=0.75)
+        plt.imshow(heatmap, alpha=0.5)
     plt.show()
 
 # Instantiate model
 importlib.reload(model)
 custom_model = model.custom()
 
-# Set loss function
-loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0001)
+## Reload saved model
+#model_path = model_path = box_path + '/_tmp/custom.pt'
+#custom_model = model.custom()
+#custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 
-# Get cpu or gpu device for training.
+# Set loss function
+custom_loss = loss.custom_loss()
+
+# Set optimizer
+adam_optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.0001, betas=(0.9, 0.999), weight_decay=0.1)
+
+# Layer-wise learning rate decay
+#lr_mult = [cfg.optimizer['paramwise_cfg']['layer_decay_rate']] * cfg.optimizer['paramwise_cfg']['num_layers']
+lr_mult = [0.75] * 12
+custom_optimizer = optimizer.custom_optimizer(adam_optimizer, lr_mult)
+
+# Get cpu or gpu device for training
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using {device} device")
 
@@ -70,20 +89,22 @@ custom_model.to(device)
 summary(custom_model, (3, 224, 224))
 
 # Define training
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    model.train()
-    for batch, (X, y) in enumerate(dataloader):
+def train(_dataloader, _model, _loss_function, _optimizer):
+    size = len(_dataloader.dataset)
+    _model.train()
+    for batch, (X, y) in enumerate(_dataloader):
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
-        pred = custom_model(X)
-        loss = loss_fn(pred, y)
+        pred = _model(X)
+        loss = _loss_function(pred, y)
+        print(" - range: {0:.6f} to {1:.6f}".format(pred[0].min(), pred[0].max()))
 
         # Backpropagation
-        optimizer.zero_grad()
+        _optimizer.zero_grad()
         loss.backward()
-        optimizer.step()
+        clip_grad_norm_(_model.parameters(), max_norm=1., norm_type=2)
+        _optimizer.step()
 
         if batch % 2 == 0:
             loss, current = loss.item(), batch * len(X)
@@ -91,16 +112,16 @@ def train(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}], pixel_loss: {pixel_loss:>5f}")
 
 # Define testing
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
+def test(_dataloader, _model, _loss_function):
+    size = len(_dataloader.dataset)
+    num_batches = len(_dataloader)
+    _model.eval()
     test_loss = 0.0
     with torch.no_grad():
-        for X, y in dataloader:
+        for X, y in _dataloader:
             X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
+            pred = _model(X)
+            test_loss += _loss_function(pred, y).item()
     test_loss /= num_batches
     pixel_loss = np.sqrt(test_loss) * 224.0
     print(f"Test Error: \n Avg loss: {test_loss:>8f}, pixel_loss: {pixel_loss:>5f}\n")
@@ -109,13 +130,13 @@ def test(dataloader, model, loss_fn):
 epochs = 250
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader, custom_model, loss_fn, optimizer)
-    test(test_dataloader, custom_model, loss_fn)
+    train(train_dataloader, custom_model, custom_loss, custom_optimizer)
+    test(test_dataloader, custom_model, custom_loss)
 print("Done!")
 
 
 
-
+# ------------------------------------------------------------------------
 # Display image and label.
 train_features, train_targets = next(iter(test_dataloader))
 print(f"Feature batch shape: {train_features.size()}")
@@ -127,25 +148,26 @@ outputs = custom_model(train_features_gpu)
 outputs = outputs.cpu().detach().numpy()
 
 # Examine predictions
+plt.figure()
 for i in range(9):
     plt.subplot(3,3,i+1)
     feature = train_features[i]
-    target = train_targets[i]
-    output = outputs[i]
+    target = np.squeeze(train_targets[i].numpy())
     feature = (feature + 2.0) / 4.0
     image = np.transpose(feature, (1,2,0))
-    plt.imshow(image)
-    plt.plot(output[0] * 224, output[1] * 224, 'yo', markersize=15, fillstyle='full')
-    plt.plot(target[0] * 224, target[1] * 224, 'g+', markersize=15,)
+    target_heatmap = cv2.resize(target, (224,224))
+    output = np.squeeze(outputs[i])
+    predicted_heatmap = cv2.resize(output, (224,224))
+    plt.imshow(image, alpha=0.75)
+    plt.imshow(predicted_heatmap, alpha=0.5)
+    #plt.imshow(target_heatmap, alpha=0.5)
+plt.savefig(output_path + '/result.png')
 plt.show()
-
-
-
+# ------------------------------------------------------------------------
 
 
 
 # Save model
 torch.save(custom_model.state_dict(), output_path + '/custom.pt')
-
 
 # FIN

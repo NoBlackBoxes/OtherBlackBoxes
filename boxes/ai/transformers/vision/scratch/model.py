@@ -104,30 +104,26 @@ class custom(torch.nn.Module):
         # 3) Transformer encoder blocks
         self.blocks = torch.nn.ModuleList([block(self.hidden_dimension, self.num_heads) for _ in range(self.num_blocks)])
         
-        # 4) Regression MLP
-        self.mlp = torch.nn.Sequential(
-            torch.nn.AvgPool1d(self.hidden_dimension),
-            torch.nn.Sigmoid()
-        )
+        # Add simple prediction head
+        self.head = torch.nn.Conv2d(in_channels=self.hidden_dimension, out_channels=1, kernel_size=1, stride=1, padding=0)
 
     # Forward
     def forward(self, x):
-        n, c, h, w = x.shape
+        b, c, h, w = x.shape
+
         patches = patchify(x, self.num_patches).to(self.positional_embeddings.device)
         
         tokens = self.linear_embedding(patches)
 
-        x = tokens + self.positional_embeddings.repeat(n, 1, 1)
+        x = tokens + self.positional_embeddings.repeat(b, 1, 1)
 
         # Transformer Blocks
         for block in self.blocks:
             x = block(x)
         
-        # Classify
-        x = self.mlp(x)
-
-        # Reshape
-        x = x.view(n,1,self.num_patches,self.num_patches)
+        # Final
+        x = x.reshape(b, -1, 14, 14).contiguous()
+        x = self.head(x)
         
         return x
 
