@@ -1,10 +1,11 @@
-# boxes : websites
+# boxes : websites : wordpress
 
 ## Server
 
 - Install Apache HTTP Server
-  - Configuration is at /etc/httpd/conf
+  - Configuration is at /etc/httpd/conf/httpd.conf
   - Enable rewrite_module
+
 
 
 ## Scripting
@@ -33,15 +34,15 @@ Include conf/extra/php_module.conf
 mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
 ```
 
-- Start service, lging to mariadb, make database
+- Start service, login to mariadb, make database
 
-```bash
-sudo mysql -u root -p
-MariaDB> CREATE DATABASE wp;
-MariaDB> GRANT ALL PRIVILEGES ON wp.* TO "wp-user"@"localhost" IDENTIFIED BY "choose_db_password";
-MariaDB> FLUSH PRIVILEGES;
-MariaDB> EXIT
-```
+  ```bash
+  sudo mysql -u root -p
+  MariaDB> CREATE DATABASE wordpress;
+  MariaDB> GRANT ALL PRIVILEGES ON wp.* TO "kampff"@"localhost" IDENTIFIED BY "choose_db_password";
+  MariaDB> FLUSH PRIVILEGES;
+  MariaDB> EXIT
+  ```
 
 phpmyadmin can help
 
@@ -58,6 +59,4 @@ tar xvzf latest.tar.gz
 ## Setup wordpress
 
 - Create wordpress 
-
-
 - permissions (server user vs wordpress)
