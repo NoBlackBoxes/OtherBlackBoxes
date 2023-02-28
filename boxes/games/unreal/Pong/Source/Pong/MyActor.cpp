@@ -90,8 +90,19 @@ void AMyActor::OnOverlap(
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ME BUMP"));
 		AMyPawn *other = (AMyPawn *) OtherActor;
-		dY = other->speed;
-		dX = -dX;
+		dY = other->speed * 1.5;
+		
+			// speed changing ball gets faster when collided 
+
+		if(dX < 0)
+		{
+			dX = dX -40;
+		}
+		else
+		{
+			dX = dX + 40;
+		}
+		dX = -1 * dX;
 	}
 	else
 	{

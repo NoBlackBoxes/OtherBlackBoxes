@@ -38,6 +38,7 @@ void AMyEnemy::Tick(float DeltaTime)
 	FVector ActorLocation = MyActorToFollow->GetActorLocation();
 	FVector EnemyLocation = GetActorLocation();
 	speed = ActorLocation.Y - EnemyLocation.Y;
+	speed = speed * 0.5;
 	position = EnemyLocation.Y;
 	position += (10 * speed * DeltaTime);
 	EnemyLocation.Y = position;

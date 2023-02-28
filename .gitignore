@@ -57,6 +57,9 @@ db.sqlite3
 # VS Code folders and workspace
 .vscode/
 *.code-workspace
+.vs/
+.vsconfig
+*.sln
 
 # VK temporary files
 _vk
