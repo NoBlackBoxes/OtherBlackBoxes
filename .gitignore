@@ -1,8 +1,10 @@
 # Build Binaries
 bin/
+Binaries/
 
 # Build outputs
 build/
+Build/
 
 # Test Fakes
 fakes/
@@ -61,3 +63,9 @@ _vk
 
 # OSX bullshit
 .DS_Store
+
+# Unreal
+DerivedDataCache/
+Saved/
+Intermediate/
+StarterContent/

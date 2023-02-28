@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{C3CA03A6-D683-442B-81F5-F1A3D5DB1FDD}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "QWOP",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		}
+	]
+}
