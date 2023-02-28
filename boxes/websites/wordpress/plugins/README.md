@@ -2,23 +2,9 @@
 
 Creating WordPress Plugins
 
-## Setup Local server and database
+## Setup Local server, scripting, and database
 
-- Install Apache and configure - start httpd.service
-- Install PHP and configure
-- Install MariaDB - start mariadb.service
-  - Create new user/password/database
-
-    ```bash
-    sudo mysql -u root -p
-    MariaDB> CREATE USER 'kampff'@'localhost' IDENTIFIED BY 'some_pass';
-    MariaDB> GRANT ALL PRIVILEGES ON mydb.* TO 'kampff'@'localhost';
-    MariaDB> FLUSH PRIVILEGES;
-    MariaDB> CREATE DATABASE wordpress;
-    MariaDB> GRANT ALL PRIVILEGES ON wordpress.* TO 'kampff'@'localhost' IDENTIFIED BY 'some_pass';
-    MariaDB> FLUSH PRIVILEGES;
-    MariaDB> EXIT
-    ```
+- See previous
 
 ## Duplicate WordPress site locally
 
@@ -29,13 +15,14 @@ Creating WordPress Plugins
 -   https://wiki.archlinux.org/title/PhpMyAdmin
 -   Go to http://localhost/phpmyadmin/
 
+- Install wp-cli from AUR (https://aur.archlinux.org/wp-cli.git)
 
 ```bash
+# Import exported database (or use phpMyAdmin)
+wp --quiet db import ~/Downloads/cajal_wordpress.sql --dbuser=kampff --dbpass='passwd'
+
 # Make a new wp-config.php
 wp config create --dbname=cajal_wordpress --dbuser=kampff --dbpass='passwd'
-
-# Import exported database (or use phpMyAdmin)
-wp --quiet db import ~/Downloads/cajal_wordpress.sql
 ```
 
 - Edit the URL?
