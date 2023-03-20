@@ -30,27 +30,3 @@ void ABookActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
-// Called on construction
-void ABookActor::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-
-	float row_offset = 3.0f;
-	float col_offset = 17.0f;
-
-	//if(BookMesh->GetInstanceCount() == 0)
-	//{
-	//	Transforms.Empty(num_rows*num_cols);
-	//	for (int r = 0; r < num_rows; r++)
-	//	{
-	//		for (int c = 0; c < num_cols; c++)
-	//		{
-	//			Transforms.Add(FTransform(FVector(col_offset * c, 0.f, row_offset * r)));
-	//		}
-	//	}
-	//
-	//	BookMesh->AddInstances(Transforms, false);
-	//}
-}
-

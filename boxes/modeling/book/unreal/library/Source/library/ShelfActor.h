@@ -10,10 +10,16 @@ class LIBRARY_API AShelfActor : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere, Category="Shelf Variables")
-	class ABookActor *BookActor;
-	
-public:	
+	UPROPERTY(EditAnywhere, Category = "Shelf Variables")
+	int32 num_books;
+
+	UPROPERTY(EditDefaultsOnly,Category="Shelf Variables")
+	TSubclassOf<ABookActor> BookActorBP;
+
+	UPROPERTY(Transient)
+	TArray<ABookActor*> BookActors;
+
+public:
 	// Sets default values for this actor's properties
 	AShelfActor();
 
@@ -21,8 +27,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	FVector RandomLocation();
 };
