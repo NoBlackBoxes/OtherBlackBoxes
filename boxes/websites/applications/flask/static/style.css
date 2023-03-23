@@ -1,0 +1,15 @@
+.logo {
+    text-align: left;
+}
+
+.icon
+{
+    width: 10%;
+}
+
+.result
+{
+    font-weight: bold;
+    margin-top: 40px;
+    white-space: pre-line;
+}

@@ -17,14 +17,16 @@ def index():
             model="text-davinci-003",
             prompt=generate_prompt(topic),
             temperature=0.6,
+            max_tokens=256,
         )
         return redirect(url_for("index", result=response.choices[0].text))
 
     result = request.args.get("result")
+    print(result)
     return render_template("index.html", result=result)
 
 
-def generate_prompt(animal):
-    return """Generate a quiz question about the {}""".format(topic)
+def generate_prompt(topic):
+    return """Generate 3 quiz questions about the {}, include answers with the prefix 'A:'""".format(topic)
 
 #FIN

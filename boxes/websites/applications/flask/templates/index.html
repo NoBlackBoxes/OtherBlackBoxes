@@ -9,13 +9,16 @@
 </head>
 
 <body>
-  <img src="{{ url_for('static', filename='icon.png') }}" class="icon" />
+  <div class="logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" class="icon" />
+  </div>
   <h3>What would you like a question about?</h3>
   <form action="/" method="post">
     <input type="text" name="topic" placeholder="Enter a topic" required />
     <input type="submit" value="Generate question" />
   </form>
   {% if result %}
-  <div class="result">{{ result }}</div>
+  <hr>
+  <div class="result">{{result}}</div>
   {% endif %}
 </body>
