@@ -30,6 +30,9 @@ documentation/latex/
 *.o
 *.obj
 
+# Environment Variables (local)
+.env
+
 # External Libraries
 external/
 
