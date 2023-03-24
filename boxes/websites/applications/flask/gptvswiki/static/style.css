@@ -1,0 +1,84 @@
+.viewport {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.page {
+    width: 70%;
+}
+
+.generate {
+    display: box;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: white;
+    float: left;
+    width: 20%;
+    height: 400px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.button {
+    padding-top: 40px;
+    background: white;
+    border: white;
+}
+
+.icon
+{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 60%;
+}
+
+.icon:hover
+{
+    -webkit-filter: invert(1);
+    filter: invert(1);
+}
+
+.result1
+{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    background: white;
+    float: left;
+    width: 40%;
+    height: 400px;
+    font-weight: normal;
+    font-size: 25px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.result1:hover
+{
+    background: grey;
+    color: white;
+}
+
+.result2
+{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    background: white;
+    float: left;
+    width: 40%;
+    height: 400px;
+    font-weight: normal;
+    font-size: 25px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.result2:hover
+{
+    background: grey;
+    color: white;
+}
