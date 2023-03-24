@@ -5,7 +5,7 @@ Python-based mini web service thing
 
 ### Install prereqs
 ```bash
-pip install numpy pandas flask openai werkzeug python-dateutil
+pip install numpy pandas flask openai werkzeug python-dateutil python-dotenv
 ```
 
 
@@ -43,3 +43,27 @@ def index():
 def generate_prompt(animal):
     return """Generate a quiz question about the {}""".format(topic)
 ```
+
+## Wikipedia API example
+
+```python
+import requests
+ 
+subject = 'Python (programming language)'
+url = 'https://en.wikipedia.org/w/api.php'
+params = {
+        'action': 'query',
+        'format': 'json',
+        'titles': subject,
+        'prop': 'extracts',
+        'exintro': True,
+        'explaintext': True,
+    }
+ 
+response = requests.get(url, params=params)
+data = response.json()
+ 
+page = next(iter(data['query']['pages'].values()))
+print(page['extract'][:73])
+```
+

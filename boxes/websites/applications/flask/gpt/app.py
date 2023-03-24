@@ -17,7 +17,7 @@ def index():
             model="text-davinci-003",
             prompt=generate_prompt(topic),
             temperature=0.6,
-            max_tokens=256,
+            max_tokens=512,
         )
         return redirect(url_for("index", result=response.choices[0].text))
 
@@ -26,7 +26,11 @@ def index():
     return render_template("index.html", result=result)
 
 
+#def generate_prompt(topic):
+#    return """Generate 3 quiz questions about the {}, include answers with the prefix 'A:'""".format(topic)
+
 def generate_prompt(topic):
-    return """Generate 3 quiz questions about the {}, include answers with the prefix 'A:'""".format(topic)
+#    return """Generate a few paragraphs describing {}, in the style of a wikipedia introductory section, but written for a 5 year old""".format(topic)
+    return """Generate a few paragraphs describing {}, in the style of a wikipedia introductory section""".format(topic)
 
 #FIN
