@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-  <title>Voight-Kampff Test</title>
+  <title>GPT vs WIKI</title>
   <link
     rel="shortcut icon"
     href="{{ url_for('static', filename='icon.png') }}"
@@ -9,35 +9,27 @@
 </head>
 
 <body>
-  <div class=viewport style="display: flex; width: 100%; justify-content: center">
-    <div class=page>
+  <div class=grid>
+  
+    {% if result1 and result2 %}
+    <div class="result1">{{result1}}</div>
+    {% else %}
+    <div class="result1"></div>
+    {% endif %}
 
-      {% if result1 and result2 %}
-      <div class="result1">{{result1}}</div>
+    <div class="title">
+      {% if title %}
+      <h1>{{ title }}</h1>
       {% else %}
-      <div class="result1"></div>
-      {% endif %}
-
-
-      <div class="generate">
-        {% if topic %}
-        <h3>{{ topic }}</h3>
-        {% else %}
-        <h3>. . .</h3>
-        {% endif %}
-        <form action="/" method="post">
-          <button class="button" value="button">
-            <img src="{{ url_for('static', filename='logo.png') }}" class="icon" />
-          </button>
-        </form>
-    </div>
-
-
-      {% if result1 and result2 %}
-      <div class="result2">{{result2}}</div>
-      {% else %}
-      <div class="result2"></div>
+      <h1>. . .</h1>
       {% endif %}
     </div>
+
+    {% if result1 and result2 %}
+    <div class="result2">{{result2}}</div>
+    {% else %}
+    <div class="result2"></div>
+    {% endif %}
+
   </div>
 </body>

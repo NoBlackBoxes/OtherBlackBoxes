@@ -1,84 +1,89 @@
-.viewport {
-    display: flex;
-    width: 100%;
-    justify-content: center;
+body{
+    background-color: white;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
 }
 
-.page {
-    width: 70%;
+.grid {
+    display: grid;
+    width: 100vw;
+    height: 100vh;
 }
 
-.generate {
-    display: box;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    background: white;
-    float: left;
-    width: 20%;
-    height: 400px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.button {
-    padding-top: 40px;
-    background: white;
-    border: white;
-}
-
-.icon
-{
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 60%;
-}
-
-.icon:hover
-{
-    -webkit-filter: invert(1);
-    filter: invert(1);
-}
+.grid::after {
+    content: "";
+    background: url(logo.png);
+    background-size: 45%;
+    background-repeat: no-repeat;
+    background-position: center; 
+    background-attachment: fixed; 
+    opacity: 0.05;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;
+  }
 
 .result1
 {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    background: white;
-    float: left;
-    width: 40%;
-    height: 400px;
-    font-weight: normal;
-    font-size: 25px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.result1:hover
-{
-    background: grey;
-    color: white;
+    grid-area: result1;
 }
 
 .result2
 {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    background: white;
-    float: left;
-    width: 40%;
-    height: 400px;
-    font-weight: normal;
-    font-size: 25px;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    grid-area: result2;
 }
 
-.result2:hover
+.title {
+    grid-area: title;
+}
+
+.result1, .title, .result2
 {
-    background: grey;
-    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    background: none;
+    font-weight: normal;
+}
+
+.result1:hover, .result2:hover
+{
+    color: goldenrod;
+}
+
+@media screen and (orientation:portrait) 
+{
+    .grid {
+        grid-template-areas: 'result1' 'title' 'result2';
+        grid-template-columns: 1fr;
+        grid-template-rows: 3fr 3fr 3fr;
+    }
+
+    .result1, .title, .result2 {
+        width: 90vw;
+        padding: 5vw;
+        font-size: 2.5vh;
+    }
+}
+
+@media screen and (orientation:landscape)
+{
+    .grid {
+        grid-template-areas: 'result1 title result2';
+        grid-template-columns: 3fr 3fr 3fr;
+        grid-template-rows: 1fr;
+    }
+
+    .result1, .title, .result2 {
+        height: 90vh;
+        padding: 5vh;
+        font-size: 1.5vw;
+    }
 }
