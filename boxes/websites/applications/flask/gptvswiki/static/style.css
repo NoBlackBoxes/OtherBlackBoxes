@@ -1,10 +1,16 @@
-body{
+body {
     background-color: white;
     margin-top: 0;
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;
 }
+
+a { 
+    color: inherit;
+    font-weight: inherit;
+    text-decoration: none;
+} 
 
 .grid {
     display: grid;
@@ -39,6 +45,7 @@ body{
 }
 
 .title {
+    white-space: pre-wrap;
     grid-area: title;
 }
 
@@ -51,6 +58,11 @@ body{
     vertical-align: middle;
     background: none;
     font-weight: normal;
+}
+
+.select1:hover, .select2:hover
+{
+    color: goldenrod;
 }
 
 .result1:hover, .result2:hover
