@@ -60,7 +60,7 @@ def select2():
 def wrong():
     # Store wrong answer in database: timestamp, wiki, gpt, correct (False)
     global model, wiki_text, gpt_text
-    database = sqlite3.connect('database.db')
+    database = sqlite3.connect('_tmp/database.db')
     cursor = database.cursor()
     cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 0))
     database.commit()
@@ -71,7 +71,7 @@ def wrong():
 def correct():
     # Store correct answer in database: timestamp, wiki, gpt, corect (True)
     global model, wiki_text, gpt_text
-    database = sqlite3.connect('database.db')
+    database = sqlite3.connect('_tmp/database.db')
     cursor = database.cursor()
     cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 1))
     database.commit()

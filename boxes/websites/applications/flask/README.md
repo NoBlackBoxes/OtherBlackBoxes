@@ -5,7 +5,7 @@ Python-based mini web service thing
 
 ### Install prereqs
 ```bash
-pip install numpy pandas flask openai werkzeug python-dateutil python-dotenv
+pip install numpy pandas flask openai werkzeug python-dateutil python-dotenv nltk
 ```
 
 
