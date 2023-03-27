@@ -1,6 +1,7 @@
 import os
 import time
 import random
+from nltk import tokenize
 import openai
 import requests
 from flask import Flask, redirect, render_template, request, url_for
@@ -39,33 +40,35 @@ def request_wiki_extract(title):
     extract  = page['extract']
     return extract
 
+# Sanitize text (remove special characters and split into full sentences)
+def sanitize_text(text):
+    sentences = tokenize.sent_tokenize(text)
+    return sentences
+
 # Determine if text is valid valid
-def is_valid_text(text):
-    sentences = text.split('.')[:-1] # Ignore final section
-    num_sentences = len(sentences)
-    if num_sentences < 3:
+def is_valid_text(sentences):
+    if len(sentences) < 3:
         return False
     return True
     
 # Truncate text
-def truncate_text(text):
-    sentences = text.split('.')[:-1] # Ignore final section
+def truncate_text(sentences):
     num_sentences = len(sentences)
     if num_sentences > 3:
         num_sentences = 3
     text = ''
     for i in range(num_sentences):
-        text = text + sentences[i] + '. '
+        text = text + sentences[i] + ' '
     return text
 
 # Generate GPT prompt
 def generate_gpt_prompt(topic):
-    return """Generate a three sentence description of {0} in the style of a wikipedia extract""".format(topic)
+    return """Generate a three sentence description of {0} in the style of a wikipedia extract.""".format(topic)
 
 # Request GPT completion
-def request_gpt_completion(prompt):
+def request_gpt_completion(prompt, model):
     response = openai.Completion.create(
-        model="text-curie-001",
+        model=model,
         prompt=prompt,
         temperature=0.6,
         max_tokens=256,
