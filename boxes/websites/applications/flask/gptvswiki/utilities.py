@@ -59,7 +59,7 @@ def truncate_text(sentences):
     text = ''
     for i in range(num_sentences):
         text = text + sentences[i] + ' '
-    return text
+    return text.strip()
 
 # Generate GPT prompt
 def generate_gpt_prompt(topic):

@@ -2,7 +2,7 @@ import os
 import time
 import random
 import openai
-import requests
+import sqlite3
 from flask import Flask, redirect, render_template, request, url_for
 import utilities as utl
 
@@ -21,6 +21,8 @@ num_correct = 0
 num_wrong = 0
 model = "text-curie-001"
 generation = "GPT-3"
+gpt_text = ''
+wiki_text = ''
 
 # Specify root route
 @app.route("/", methods=("GET", "POST"))
@@ -57,16 +59,28 @@ def select2():
 @app.route("/wrong", methods=("GET", "POST"))
 def wrong():
     # Store wrong answer in database: timestamp, wiki, gpt, correct (False)
+    global model, wiki_text, gpt_text
+    database = sqlite3.connect('database.db')
+    cursor = database.cursor()
+    cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 0))
+    database.commit()
+    database.close()
     return render_template("wrong.html"), {"Refresh": "0.25; url=select"}
 
 @app.route("/correct", methods=("GET", "POST"))
 def correct():
     # Store correct answer in database: timestamp, wiki, gpt, corect (True)
+    global model, wiki_text, gpt_text
+    database = sqlite3.connect('database.db')
+    cursor = database.cursor()
+    cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 1))
+    database.commit()
+    database.close()
     return render_template("correct.html"), {"Refresh": "0.25; url=select"}
 
 @app.route("/select", methods=("GET", "POST"))
 def select():
-    global is_wiki_1, num_correct, num_wrong, model, generation
+    global is_wiki_1, num_correct, num_wrong, model, generation, gpt_text, wiki_text
 
     # If POST, update model/generation
     if request.method == "POST":
