@@ -32,6 +32,7 @@ documentation/latex/
 
 # Environment Variables (local)
 .env
+.key
 
 # External Libraries
 external/

@@ -13,7 +13,9 @@ random.seed(time.time())
 app = Flask(__name__)
 
 # Indicate OpenAI API Key environmental variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+#openai.api_key = os.getenv("OPENAI_API_KEY")
+root_path = "/var/www/llm/gptvswiki"
+openai.api_key_path = root_path + "/.key"
 
 # State
 is_wiki_1 = True
@@ -60,7 +62,7 @@ def select2():
 def wrong():
     # Store wrong answer in database: timestamp, wiki, gpt, correct (False)
     global model, wiki_text, gpt_text
-    database = sqlite3.connect('_tmp/database.db')
+    database = sqlite3.connect(root_path + '/_tmp/database.db')
     cursor = database.cursor()
     cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 0))
     database.commit()
@@ -71,7 +73,7 @@ def wrong():
 def correct():
     # Store correct answer in database: timestamp, wiki, gpt, corect (True)
     global model, wiki_text, gpt_text
-    database = sqlite3.connect('_tmp/database.db')
+    database = sqlite3.connect(root_path + '/_tmp/database.db')
     cursor = database.cursor()
     cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 1))
     database.commit()
@@ -129,5 +131,8 @@ def select():
 
     return render_template("index.html", title=title, generation=generation, result1=result1, result2=result2, num_correct=num_correct, num_trials=(num_correct+num_wrong))
 
+# MAIN
+if __name__ == "__main__":
+    app.run()
 
 #FIN
