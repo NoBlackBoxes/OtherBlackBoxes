@@ -141,7 +141,20 @@ body {
 .score {
     display: flex;
     text-shadow: 0px 0px 8px black;
-    color: yellow;
+    color: rgb(11, 83, 8);
+    justify-content: end;
+    align-content: end;
+    flex-direction: column;
+    bottom: 0;
+    height: 30%;
+    font-size: 2.5vw;
+    vertical-align: middle;
+}
+
+.score h5 {
+    display: flex;
+    text-shadow: 0px 0px 4px rgb(253, 241, 131);
+    color: goldenrod;
     justify-content: end;
     align-content: end;
     flex-direction: column;
