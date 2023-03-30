@@ -22,8 +22,8 @@ Larger scale websites
 - Sync project folder(s)
 
 ```bash
-sudo rsync -rL /home/ubuntu/NoBlackBoxes/repos/OtherBlackBoxes/boxes/websites/applications/flask/gptvswiki /var/www/llm
-sudo rsync -rL /home/ubuntu/NoBlackBoxes/repos/OtherBlackBoxes/boxes/websites/applications/flask/wsgi/llm.wsgi /var/www/llm
+rsync -rL /home/ubuntu/NoBlackBoxes/repos/OtherBlackBoxes/boxes/websites/applications/flask/gptvswiki /var/www/llm
+rsync -rL /home/ubuntu/NoBlackBoxes/repos/OtherBlackBoxes/boxes/websites/applications/flask/wsgi/llm.wsgi /var/www/llm
 ```
 
 - Copy the default config file in "/etc/apache2/sites-available" to one named after your site, edit appropriately
