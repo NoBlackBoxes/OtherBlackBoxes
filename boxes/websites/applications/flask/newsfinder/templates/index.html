@@ -1,34 +1,60 @@
 <!DOCTYPE html>
+<html>
 <head>
-  <title>GPT vs WIKI</title>
-  <link rel="shortcut icon" href="{{ url_for('static', filename='icon.png') }}"/>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <title>My Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .text-entry {
+      width: 100%;
+      height: 80px; /* Adjusted height */
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+
+    .image {
+      float: left;
+      margin-right: 20px;
+    }
+
+    .text {
+      float: left; /* Adjusted float to the left */
+      margin-top: 20px; /* Adjusted margin-top */
+    }
+  </style>
 </head>
-
 <body>
-  
-  <div class=grid>
-  
-    <div class="result1"><a href="/select1" class="select1">{{result1}}</a></div>
-
-    <div class="title">
-      <div class="question">News Finder -  
-        <form class="model" method="post" action="{{ url_for('select') }}">
-          <select name="version" id="version" onchange="this.form.submit()">
-            {% if generation %}
-            <option hidden value={{generation}}>{{generation}}</option>
-            {% endif %}
-            <option value="GPT-3">GPT-3</option>
-            <option value="GPT-3.5">GPT-3.5</option>
-            <option disabled value="GPT-4">GPT-4</option>
-          </select>
-        </form>
-      </div>
-      <div class="topic">{{ title }}</div>
-      <div class="score"><h5>Which is Wikipedia?</h5>Score: {{num_correct}} / {{num_trials}}</div>
+  <div class="container">
+    <h1>My Website</h1>
+    <form action="/" method="post">
+      <input type="text" name="topic" placeholder="Enter a topic" required />
+      <input type="submit" value="Generate question" />
+    </form>
+    <div class="image">
+      <img src="{{ url_for('static', filename='icon.png') }}" alt="Image">
     </div>
-
-    <div class="result2"><a href="/select2" class="select2">{{result2}}</a></div>
-
+    <div class="text">
+      
+    </div>
   </div>
+  {% if result %}
+  <hr>
+  <div class="result">{{result}}</div>
+  {% endif %}
 </body>
+</html>
