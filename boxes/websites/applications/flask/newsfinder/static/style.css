@@ -1,0 +1,229 @@
+body {
+    background-color: white;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.grid a {
+    color: inherit;
+    font-weight: inherit;
+    text-decoration: none;
+}
+
+.grid {
+    display: grid;
+    width: 100vw;
+    height: 100vh;
+}
+
+.grid::after {
+    content: "";
+    background: url(logo.png);
+    background-size: 45%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    opacity: 0.05;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;
+}
+
+.result1 {
+    display: flex;
+    grid-area: result1;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    background: none;
+}
+
+.result2 {
+    display: flex;
+    grid-area: result2;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    background: none;
+}
+
+.title {
+    display: inline;
+    grid-area: title;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: none;
+}
+
+.select1:hover,
+.select2:hover {
+    color: goldenrod;
+}
+
+.result1:hover,
+.result2:hover {
+    color: goldenrod;
+}
+
+.question {
+    display: flex;
+    text-shadow: 0px 3px 7px gray;
+    color: black;
+    justify-content: center;
+    align-content: center;
+    height: 30%;
+    font-size: 1.25vw;
+    font-style: italic;
+}
+
+.model {
+    font-family: Arial;
+    padding-left: 15px;
+}
+
+.model select {
+    background-color: #e9e9e9;
+    color: rgb(0, 0, 0);
+    width: 125px;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    -webkit-appearance: button;
+    appearance: button;
+    outline: none;
+}
+
+.model::before {
+    content: "\f13a";
+    font-family: FontAwesome;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20%;
+    height: 100%;
+    text-align: center;
+    font-size: 28px;
+    line-height: 45px;
+    color: rgba(255, 255, 255, 0.726);
+    background-color: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+}
+
+.model:hover::before {
+    color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.model select option {
+    padding: 30px;
+}
+
+.topic {
+    display: flex;
+    text-shadow: 0px 0px 11px gray;
+    color: black;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    height: 40%;
+    font-size: 3.5vw;
+}
+
+.score {
+    display: flex;
+    text-shadow: 0px 0px 8px black;
+    color: rgb(11, 83, 8);
+    justify-content: end;
+    align-content: end;
+    flex-direction: column;
+    bottom: 0;
+    height: 30%;
+    font-size: 2.5vw;
+    vertical-align: middle;
+}
+
+.score h5 {
+    display: flex;
+    text-shadow: 0px 0px 4px rgb(253, 241, 131);
+    color: goldenrod;
+    justify-content: end;
+    align-content: end;
+    flex-direction: column;
+    bottom: 0;
+    height: 30%;
+    font-size: 2.5vw;
+    vertical-align: middle;
+}
+
+@media screen and (orientation:portrait) {
+    .grid {
+        grid-template-areas: 'result1' 'title' 'result2';
+        grid-template-columns: 1fr;
+        grid-template-rows: 3fr 3fr 3fr;
+    }
+
+    .result1,
+    .title,
+    .result2 {
+        width: 90vw;
+        padding: 5vw;
+    }
+
+    .result1,
+    .result2 {
+        font-size: 2.5vh;
+    }
+
+    .question {
+        font-size: 1.25vh;
+    }
+
+    .topic {
+        font-size: 3.5vh;
+    }
+
+    .score {
+        font-size: 2vh;
+    }
+}
+
+@media screen and (orientation:landscape) {
+    .grid {
+        grid-template-areas: 'result1 title result2';
+        grid-template-columns: 3fr 3fr 3fr;
+        grid-template-rows: 1fr;
+    }
+
+    .result1,
+    .title,
+    .result2 {
+        height: 90vh;
+        padding: 3vh;
+    }
+
+    .result1,
+    .result2 {
+        font-size: 1.5vw;
+    }
+
+    .question {
+        font-size: 1.25vw;
+    }
+
+    .topic {
+        font-size: 3.5vw;
+    }
+
+    .score {
+        font-size: 2.5vw;
+    }
+}

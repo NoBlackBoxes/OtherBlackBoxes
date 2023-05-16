@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<head>
+  <title>GPT vs WIKI</title>
+  <link
+    rel="shortcut icon"
+    href="{{ url_for('static', filename='icon.png') }}"
+  />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+
+<style>
+.grid::after {
+    content: "";
+    background: url("{{ url_for('static', filename='logo_correct.png') }}");
+    background-size: 25%;
+    background-repeat: no-repeat;
+    background-position: center; 
+    background-attachment: fixed; 
+    opacity: 0.15;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;
+  }
+</style>
+
+<body>
+  <div class=grid>
+  
+    <div class="result1"></div>
+
+    <div class="title"></div>
+
+    <div class="result2"></div>
+
+  </div>
+</body>
