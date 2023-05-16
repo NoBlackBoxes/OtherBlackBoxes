@@ -95,3 +95,9 @@ sudo certbot --apache
 ```
 
 - Make sure port is open (443) on AWS
+
+
+- to restart server
+```bash
+sudo systemctl restart apache2
+```
