@@ -13,6 +13,9 @@
       max-width: 800px;
       margin: 0 auto;
       padding: 20px;
+      display: flex; /* Added flex display */
+      flex-direction: column; /* Set flex direction to column */
+      align-items: center; /* Center align items horizontally */
     }
 
     h1 {
@@ -28,8 +31,10 @@
     }
 
     .image {
-      float: left;
-      margin-right: 20px;
+      position: absolute; /* Added position absolute */
+      top: 0; /* Positioned at the top */
+      left: 0; /* Positioned at the left */
+      margin: 20px; /* Added margin for spacing */
     }
 
     .text {
@@ -41,6 +46,15 @@
 <body>
   <div class="container">
     <h1>--News Finder--</h1>
+
+    <br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
     <form action="/" method="post">
       <input type="text" name="topic" placeholder="Enter a topic" required />
       <input type="submit" value="Generate question" />
