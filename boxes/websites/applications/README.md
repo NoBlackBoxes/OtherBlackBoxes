@@ -101,3 +101,35 @@ sudo certbot --apache
 ```bash
 sudo systemctl restart apache2
 ```
+
+## Self-signed SSL certificates (for testing)
+
+- in /etc/httpd/conf
+
+```bash
+# Generate
+sudo openssl genrsa -des3 -out server.key 1024
+
+# Self-sign (use correct common name : domain name or IP)
+sudo openssl req -new -key server.key -out server.csr
+
+# Remove passphrase
+sudo cp server.key server.key.org
+sudo openssl rsa -in server.key.org -out server.key
+
+# Specify expiration
+sudo openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+# Modify conf
+sudo nano /etc/httpd/conf/httpd.conf
+
+##Once there, uncomment the following line:
+## Include conf/extra/httpd-ssl.conf
+
+# Restart apache
+sudo systemctl restart httpd
+
+# May need to turn on some Apche Modules
+# LoadModule ssl_module modules/mod_ssl.so
+# LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
+```
