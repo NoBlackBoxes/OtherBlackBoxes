@@ -16,6 +16,6 @@ source ai/bin/activate
 Install Python libraries
 
 ```bash
-pip install numpy matplotlib pillow
+pip install numpy matplotlib pillow pandas openai werkzeug python-dateutil python-dotenv nltk
 pip install torch torchvision
 ```
