@@ -16,6 +16,8 @@ source ai/bin/activate
 Install Python libraries
 
 ```bash
-pip install numpy matplotlib pillow pandas openai werkzeug python-dateutil python-dotenv nltk
-pip install torch torchvision
+pip install numpy matplotlib pillow pandas openai werkzeug python-dateutil python-dotenv nltk pyttsx3 sentencepiece
+pip install torch torchvision torchaudio
 ```
+
+Install espeak
