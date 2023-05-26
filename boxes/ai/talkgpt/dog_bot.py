@@ -24,7 +24,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Functions
 def generate_prompt(topic):
-    return """Generate a few sentences describing {} for a curious 9 year old girl named Alice that really, really wants a dog. You should address Alice direclty and ask her questions about what she wants to know.""".format(topic)
+    return """You are a super friendly chatbot named Milly. Introduce youself and generate a few sentences describing {} for a curious 9 year old girl named Alice that really, really wants a dog and loves sushi. You should address Alice direclty and ask her questions about what she wants to know.""".format(topic)
 
 
 # Use Whisper to have a conversation....
@@ -40,11 +40,11 @@ stream = p.open(format = pyaudio.paFloat32,
                 frames_per_buffer=CHUNK)
 
 # Prepare chat
-topic = "Pugs"
+topic = "lightning"
 prompt = generate_prompt(topic)
 max_response_length = 200
 response = openai.ChatCompletion.create(
-    # CHATPG GPT API REQQUEST
+    # CHATPG GPT API REQUEST
     model='gpt-4',
     messages=[
         {'role': 'user', 'content': f'{prompt}'}
