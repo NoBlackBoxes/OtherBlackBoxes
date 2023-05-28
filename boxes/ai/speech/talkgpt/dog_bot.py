@@ -40,7 +40,7 @@ stream = p.open(format = pyaudio.paFloat32,
                 frames_per_buffer=CHUNK)
 
 # Prepare chat
-topic = "lightning"
+topic = "Your Favourite Song"
 prompt = generate_prompt(topic)
 max_response_length = 200
 response = openai.ChatCompletion.create(
