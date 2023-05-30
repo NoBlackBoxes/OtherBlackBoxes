@@ -40,7 +40,14 @@ microphone.start()
 speaker = sound.speaker(1600, pyaudio.paInt16, 16000)
 speaker.start()
 
-# Clear to begin
+# Initialize conversation history
+conversation = [
+    {"role": "system", "content": "You are a helpful chatbot named Milly."},
+    {"role": "user", "content": "You are a helpful chatbot named Milly."},
+    {'role': 'user', 'content': "Can you please answer my questions in a clear and entertaining way? Please keep your answers short, one ro two sentences at the most. My name is Alice and I love dogs, sushi, and Eurovision."}
+]
+
+# Clear terminal
 os.system('cls' if os.name == 'nt' else 'clear')
 
 # Three test recordings/outputs
@@ -50,13 +57,14 @@ while True:
     #
 
     # Wait to start talking
-    input("Press Enter to start talking to Milly...")
+    input("Press <Enter> to start talking to Milly...")
 
     # Start recording
     microphone.reset()
 
     # Wait to stop talking
-    input("Press Enter to stop.")
+    input("Press <Enter> to stop talking.")
+    print("\n...\n")
 
     # Read sound recorded
     recording = microphone.read()
@@ -66,7 +74,7 @@ while True:
     input_features = inputs.input_features
 
     # Generate IDs
-    generated_ids = model_rec.generate(inputs=input_features, max_new_tokens=512)
+    generated_ids = model_rec.generate(inputs=input_features, max_new_tokens=1024)
 
     # Transcribe
     transcription = processor_rec.batch_decode(generated_ids, skip_special_tokens=True)[0]
@@ -75,41 +83,35 @@ while True:
     print("\n")
     print(colored(transcription, "light_cyan"))
 
+    # Append to question to conversation
+    conversation.append({'role': 'user', 'content': f'{transcription}'})
+
     #
     # Output
     #
     # Prepare chat
-    max_response_length = 200
+    max_response_length = 256
     response = openai.ChatCompletion.create(
-        # CHATPG GPT API REQUEST
-        model='gpt-4',
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant named Milly."},
-            {'role': 'user', 'content': f'{transcription}'},
-        ],
+        model='gpt-3.5-turbo',
+        messages=conversation,
         max_tokens=max_response_length,
         temperature=0.75,
-        stream=True,
+        stream=False,
     )
+    result =  response.choices[0].message.content
 
     # Voice response
-    start_time = start_time = time.time()
-    answer = ''
-    for event in response:     
-        event_time = time.time() - start_time
-        event_text = event['choices'][0]['delta']
-        answer = answer + event_text.get('content', '')
+    print(colored(result, "light_magenta"), end='', flush=True) # Print the response
+    inputs = processor_gen(text=result, return_tensors="pt")
+    speech = model_gen.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
+    buffer = speech.numpy()
+    speaker.write(buffer)
+    while speaker.playing == True:
+        time.sleep(0.05)
+    print("\n---\n")
 
-        if len(answer) > 0:
-            if (answer[-1]) == '.':
-                print(colored(answer, "light_magenta"), end='', flush=True) # Print the response
-                inputs = processor_gen(text=answer, return_tensors="pt")
-                speech = model_gen.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
-                buffer = speech.numpy()
-                speaker.write(buffer)
-                answer = ''
-    print("\n")
-    print("\n")
+    # Append to answer to conversation
+    conversation.append({'role': 'assistant', 'content': f'{result}'})
 
 # Shutdown
 microphone.stop()

@@ -133,15 +133,25 @@ class speaker:
 
     # Write sound method
     def write(self, sound):
-        self.sound = np.copy(sound)
+        num_samples = np.shape(sound)[0]
+        max_samples = num_samples + (self.buffer_size - (num_samples % self.buffer_size))
+        self.sound = np.zeros(max_samples)
+        self.sound[:num_samples] = sound
         self.current_sample = 0
-        self.max_samples = np.shape(sound)[0]
+        self.max_samples = max_samples
         return
 
-    # Reset sound capture
+    # Reset sound output
     def reset(self):
         self.current_sample = 0
         return
+
+    # Check if for sound output is finished
+    def playing(self):
+        if self.current_sample < self.max_samples:
+            return True
+        else:
+            return False
 
     # Stop thread method
     def stop(self):
