@@ -1,19 +1,19 @@
 import os
-import torch
 import numpy as np
-import matplotlib.pyplot as plt
+import torch
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
 from datasets import load_dataset
 import openai
 import time
 from dotenv import load_dotenv
+from termcolor import colored
 import pyaudio
-import capture
+import sound
 
 # Reload
 import importlib
-importlib.reload(capture)
+importlib.reload(sound)
 
 # Load speech generation model
 processor_gen = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
@@ -32,82 +32,87 @@ model_rec = WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny
 load_dotenv(".env")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Functions
-def generate_prompt(topic):
-    return """You are a super friendly dog expert wiht lots of stron opinions named Milly. Can you answer questions from a girl named Alice? Her first question is {}""".format(topic)
+# Initiliaze microphone thread
+microphone = sound.microphone(1600, pyaudio.paInt16, 16000, 10)
+microphone.start()
 
-# Wait to start talking
-input("Press Enter to start talking to Milly...")
+# Initiliaze speaker thread
+speaker = sound.speaker(1600, pyaudio.paInt16, 16000)
+speaker.start()
 
-# Initiliaze capture thread
-stream  = capture.stream(1600, pyaudio.paInt16, 1, 16000, 10)
-stream.start()
+# Clear to begin
+os.system('cls' if os.name == 'nt' else 'clear')
 
-# Wait to stop talking
-input("Press Enter to stop.")
+# Three test recordings/outputs
+while True:
+    #
+    # Input
+    #
 
-# Read sound recorded
-sound = stream.read()
-stream.stop()
+    # Wait to start talking
+    input("Press Enter to start talking to Milly...")
 
-# Extract features
-inputs = processor_rec(sound, sampling_rate=16000, return_tensors="pt")
-input_features = inputs.input_features
+    # Start recording
+    microphone.reset()
 
-# Generate IDs
-generated_ids = model_rec.generate(inputs=input_features, max_new_tokens=512)
+    # Wait to stop talking
+    input("Press Enter to stop.")
 
-# Transcribe
-transcription = processor_rec.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    # Read sound recorded
+    recording = microphone.read()
 
-# Print question
-print(transcription)
+    # Extract features
+    inputs = processor_rec(recording, sampling_rate=16000, return_tensors="pt")
+    input_features = inputs.input_features
 
-# Get answer from Milly
-CHUNK = 1600
-p = pyaudio.PyAudio()
-stream = p.open(format = pyaudio.paFloat32,
-                channels = 1,
-                rate = 16000,
-                output = True,
-                frames_per_buffer=CHUNK)
+    # Generate IDs
+    generated_ids = model_rec.generate(inputs=input_features, max_new_tokens=512)
 
-# Prepare chat
-prompt = generate_prompt(transcription)
-max_response_length = 200
-response = openai.ChatCompletion.create(
-    # CHATPG GPT API REQUEST
-    model='gpt-4',
-    messages=[
-        {'role': 'user', 'content': f'{prompt}'}
-    ],
-    max_tokens=max_response_length,
-    temperature=0.75,
-    stream=True,
-)
+    # Transcribe
+    transcription = processor_rec.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
-start_time = start_time = time.time()
-answer = ''
-for event in response:     
-    event_time = time.time() - start_time
-    event_text = event['choices'][0]['delta']
-    answer = answer + event_text.get('content', '')
+    # Print question
+    print("\n")
+    print(colored(transcription, "light_cyan"))
 
-    if len(answer) > 0:
-        if (answer[-1]) == '.':
-            print(answer, end='', flush=True) # Print the response
-            inputs = processor_gen(text=answer, return_tensors="pt")
-            speech = model_gen.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
-            buffer = speech.numpy()
-            num_chunks = len(buffer) // CHUNK
-            stream.write(buffer, num_chunks*CHUNK)
-            answer = ''
-print("\n")
+    #
+    # Output
+    #
+    # Prepare chat
+    max_response_length = 200
+    response = openai.ChatCompletion.create(
+        # CHATPG GPT API REQUEST
+        model='gpt-4',
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant named Milly."},
+            {'role': 'user', 'content': f'{transcription}'},
+        ],
+        max_tokens=max_response_length,
+        temperature=0.75,
+        stream=True,
+    )
 
-# Close and terminate the stream
-stream.close()
-p.terminate()
+    # Voice response
+    start_time = start_time = time.time()
+    answer = ''
+    for event in response:     
+        event_time = time.time() - start_time
+        event_text = event['choices'][0]['delta']
+        answer = answer + event_text.get('content', '')
 
+        if len(answer) > 0:
+            if (answer[-1]) == '.':
+                print(colored(answer, "light_magenta"), end='', flush=True) # Print the response
+                inputs = processor_gen(text=answer, return_tensors="pt")
+                speech = model_gen.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
+                buffer = speech.numpy()
+                speaker.write(buffer)
+                answer = ''
+    print("\n")
+    print("\n")
 
+# Shutdown
+microphone.stop()
+speaker.stop()
 
-#FIN
+# FIN
