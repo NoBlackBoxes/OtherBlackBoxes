@@ -33,18 +33,21 @@ load_dotenv(".env")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Initiliaze microphone thread
-microphone = sound.microphone(1600, pyaudio.paInt16, 16000, 10)
+# - Device 4 - internal
+microphone = sound.microphone(4, 1600, pyaudio.paInt16, 16000, 10)
 microphone.start()
 
 # Initiliaze speaker thread
-speaker = sound.speaker(1600, pyaudio.paInt16, 16000)
+# - Device 4 - internal
+# - Device 10 - bluetooth
+speaker = sound.speaker(10, 1600, pyaudio.paInt16, 16000)
 speaker.start()
 
 # Initialize conversation history
 conversation = [
     {"role": "system", "content": "You are a helpful chatbot named Milly."},
     {"role": "user", "content": "You are a helpful chatbot named Milly."},
-    {'role': 'user', 'content': "Can you please answer my questions in a clear and entertaining way? Please keep your answers short, one ro two sentences at the most. My name is Alice and I love dogs, sushi, and Eurovision."}
+    {'role': 'user', 'content': "Can you please answer my questions in a clear and entertaining way for a 9 year old child? Please keep your answers short, one or two sentences at the most. My name is Alice and I love dogs, sushi, and Eurovision. Also, it would be best, when appropriate, to answer in the form of a joke."}
 ]
 
 # Clear terminal
@@ -102,8 +105,14 @@ while True:
 
     # Voice response
     print(colored(result, "light_magenta"), end='', flush=True) # Print the response
+    start_time = time.clock_gettime(time.CLOCK_MONOTONIC)
     inputs = processor_gen(text=result, return_tensors="pt")
     speech = model_gen.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
+
+    now_time = time.clock_gettime(time.CLOCK_MONOTONIC)
+    elapsed_time = now_time - start_time
+    print("Elapsed Time: {}".format(elapsed_time))
+
     buffer = speech.numpy()
     speaker.write(buffer)
     while speaker.playing == True:

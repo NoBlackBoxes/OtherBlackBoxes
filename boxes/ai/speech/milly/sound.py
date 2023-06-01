@@ -6,7 +6,7 @@ from threading import Thread
 # Sound input thread (microphone)
 #
 class microphone:
-    def __init__(self, buffer_size, format, sample_rate, max_duration):        
+    def __init__(self, device, buffer_size, format, sample_rate, max_duration):        
         self.buffer_size = buffer_size
         self.format = format
         self.sample_rate = sample_rate
@@ -18,7 +18,7 @@ class microphone:
         self.pya = pyaudio.PyAudio()
 
         # Open audio input stream (from default device)
-        self.stream = self.pya.open(format=format, channels=1, rate=sample_rate, input=True, output=False, frames_per_buffer=buffer_size)
+        self.stream = self.pya.open(input_device_index=device, format=format, channels=1, rate=sample_rate, input=True, output=False, frames_per_buffer=buffer_size)
 
         # Create rolling buffer
         self.max_samples = sample_rate * max_duration
@@ -81,7 +81,7 @@ class microphone:
 # Sound output thread (speaker)
 #
 class speaker:
-    def __init__(self, buffer_size, format, sample_rate):        
+    def __init__(self, device, buffer_size, format, sample_rate):        
         self.buffer_size = buffer_size
         self.format = format
         self.sample_rate = sample_rate
@@ -92,7 +92,7 @@ class speaker:
         self.pya = pyaudio.PyAudio()
 
         # Open audio output stream (from default device)
-        self.stream = self.pya.open(format=format, channels=1, rate=sample_rate, input=False, output=True, frames_per_buffer=buffer_size)
+        self.stream = self.pya.open(output_device_index=device, format=format, channels=1, rate=sample_rate, input=False, output=True, frames_per_buffer=buffer_size)
 
         # Create rolling buffer
         self.streaming = False
