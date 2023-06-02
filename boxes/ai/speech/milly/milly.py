@@ -115,7 +115,7 @@ while True:
 
     buffer = speech.numpy()
     speaker.write(buffer)
-    while speaker.playing == True:
+    while speaker.playing():
         time.sleep(0.05)
     print("\n---\n")
 

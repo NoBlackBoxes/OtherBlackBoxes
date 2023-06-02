@@ -47,7 +47,8 @@ speaker.start()
 conversation = [
     {"role": "system", "content": "You are a helpful chatbot named Milly."},
     {"role": "user", "content": "You are a helpful chatbot named Milly."},
-    {'role': 'user', 'content': "Can you please answer my questions in a clear and entertaining way for a 9 year old child? Please keep your answers short, one or two sentences at the most. My name is Alice and I love dogs, sushi, and Eurovision. Also, it would be best, when appropriate, to answer in the form of a joke."}
+#    {'role': 'user', 'content': "Can you please answer my questions in a clear and entertaining way for a 9 year old child? Please keep your answers short, one or two sentences at the most. My name is Alice and I love dogs, sushi, and Eurovision. Also, it would be best, when appropriate, to answer in the form of a joke."}
+    {'role': 'user', 'content': "Can you respond to the following transcribed snippet of a conversation that was recorded at an optics course with a witty comment or joke. If you have nothing cool to say, then just say something silly or insightful...or ask a question about similar topics."}
 ]
 
 # Clear terminal
@@ -111,13 +112,13 @@ while True:
         event_text = event['choices'][0]['delta']
         partial_answer = partial_answer + event_text.get('content', '')
         if len(partial_answer) > 0:
-            if (partial_answer[-1]) == '.':
+            if ((partial_answer[-1] == '.') or (partial_answer[-1] == '!') or (partial_answer[-1] == '!')):
                 sample = TTSHubInterface.get_model_input(task, partial_answer)
                 wav, rate = TTSHubInterface.get_prediction(task, model_gen, generator_gen, sample)
                 buffer = wav.numpy()
                 speaker.write(buffer)
                 time.sleep(0.50)
-                while speaker.playing == True:
+                while speaker.playing():
                     time.sleep(0.05)
                 full_answer = full_answer + partial_answer
                 partial_answer = ''
