@@ -4,7 +4,10 @@ import random
 import openai
 import sqlite3
 from flask import Flask, redirect, render_template, request, url_for
+from dotenv import load_dotenv
 import utilities as utl
+
+root_path = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes/boxes/websites/applications/flask'
 
 # Seed random
 random.seed(time.time())
@@ -13,9 +16,8 @@ random.seed(time.time())
 app = Flask(__name__)
 
 # Indicate OpenAI API Key environmental variable
-#openai.api_key = os.getenv("OPENAI_API_KEY")
-root_path = "/var/www/llm/gptvswiki"
-openai.api_key_path = root_path + "/.key"
+load_dotenv(".env")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # State
 is_wiki_1 = True
@@ -62,7 +64,7 @@ def select2():
 def wrong():
     # Store wrong answer in database: timestamp, wiki, gpt, correct (False)
     global model, wiki_text, gpt_text
-    database = sqlite3.connect(root_path + '/_tmp/database.db')
+    database = sqlite3.connect(root_path + '/gptvswiki/_tmp/database.db')
     cursor = database.cursor()
     cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 0))
     database.commit()
@@ -73,7 +75,7 @@ def wrong():
 def correct():
     # Store correct answer in database: timestamp, wiki, gpt, corect (True)
     global model, wiki_text, gpt_text
-    database = sqlite3.connect(root_path + '/_tmp/database.db')
+    database = sqlite3.connect(root_path + '/gptvswiki/_tmp/database.db')
     cursor = database.cursor()
     cursor.execute("INSERT INTO answers (model, wiki, gpt, correct) VALUES (?, ?, ?,?)", (model, wiki_text, gpt_text, 1))
     database.commit()
