@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 from termcolor import colored
 import pyaudio
 import sound
+import logging
+
+# Turn off DEBUG logging
+logging.getLogger().setLevel(logging.CRITICAL)
 
 # Reload
 import importlib
@@ -40,7 +44,7 @@ microphone.start()
 # Initiliaze speaker thread
 # - Device 4 - internal
 # - Device 10 - bluetooth
-speaker = sound.speaker(10, 2205, pyaudio.paInt16, 22050)
+speaker = sound.speaker(4, 2205, pyaudio.paInt16, 22050)
 speaker.start()
 
 # Initialize conversation history
@@ -54,7 +58,7 @@ conversation = [
 # Clear terminal
 os.system('cls' if os.name == 'nt' else 'clear')
 
-# Three test recordings/outputs
+# Chat
 while True:
     #
     # Input
