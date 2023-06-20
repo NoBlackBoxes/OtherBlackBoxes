@@ -32,7 +32,7 @@ Example run script
 ```bash
 #!/bin/bash
 
-# Cajal daemon script
+# Something daemon script
 
 # Configure CPU govenor
 sudo sh -c "echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"

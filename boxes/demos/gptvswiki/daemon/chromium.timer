@@ -1,0 +1,9 @@
+[Unit]
+Description=Chromium Daemon (timer)
+
+[Timer]
+OnBootSec=5sec
+OnUnitActiveSec=10sec
+
+[Install]
+WantedBy=timers.target

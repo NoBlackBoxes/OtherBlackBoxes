@@ -1,0 +1,8 @@
+[Unit]
+Description=Chromium Daemon (service)
+
+[Service]
+Type=oneshot
+User=kampff
+Group=kampff
+ExecStart=/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes/boxes/demos/gptvswiki/daemon/chromium.sh
