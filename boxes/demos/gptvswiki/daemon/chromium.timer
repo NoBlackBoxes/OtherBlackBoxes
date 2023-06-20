@@ -1,8 +1,9 @@
 [Unit]
 Description=Chromium Daemon (timer)
+After=network-online.target
 
 [Timer]
-OnBootSec=5sec
+OnBootSec=30sec
 OnUnitActiveSec=10sec
 
 [Install]
