@@ -92,7 +92,7 @@ def select():
         if generation == "GPT-4":
             model = "gpt-4"
         elif generation == "GPT-3.5":
-            model = "gpt-3.5-turbo"        
+            model = "text-davinci-003"        
         else:
             generation = "GPT-3"
             model = "text-curie-001"
