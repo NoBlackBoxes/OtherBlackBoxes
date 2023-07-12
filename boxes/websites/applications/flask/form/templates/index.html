@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<head>
+  <title>Hi ENBers!r</title>
+  <link
+    rel="shortcut icon"
+    href="{{ url_for('static', filename='icon.png') }}"
+  />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+
+<body>
+  <div class="logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" class="icon" />
+  </div>
+  <h3>How would you like the robot to move?</h3>
+  <form action="/" method="post">
+    <input type="text" name="direction" placeholder="Enter a direction" required />
+    <input type="submit" value="Generate movement" />
+  </form>
+</body>
