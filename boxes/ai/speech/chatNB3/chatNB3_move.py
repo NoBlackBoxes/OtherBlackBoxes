@@ -4,15 +4,38 @@ import pyttsx3
 import pyaudio
 import wave
 import numpy as np
+import serial
 import curses
+import time
 
 # Set OpenAI API Key (secret!!!)
 openai.api_key = "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"
 
 # Initialize conversation history
 conversation = [
-    {"role": "system", "content": "You are small two wheeled robot shaped like a brain. Your name is NB3, which stands for no black box bot. Your task is to respond to questions about neuroscience and technology, or anything really, with a short snarky but accurate reply."},
+    {"role": "system", "content": "You are small two wheeled robot. Your name is NB3, which stands for no black box bot. \
+     Your task is to respond to requests for you to move in a particular way with a sensible, funny, somwhat snarky text reply and a sequence of movements. \
+     The movement commands should follow immediately after a '##' at the end of your text reply. There should be a final '##' at the end of the commands. \
+     They should have the following format: \"<some text reply you produce>##f200 l300 r100 b75##\". \
+     The commands must consist of single letters (f,b,l,r) followed by a number. f is forward, b is backward, l is left turn, r is right turn, and the numbers \
+     indicate how long the robot should perform the movement for in milliseconds. So, for the previous example, the robot would move forward for 200 ms, make a \
+     left turn for 300 ms, a right turn for 100 ms, and go backward for 100 ms."},
 ]
+
+# Configure serial port
+ser = serial.Serial()
+ser.baudrate = 19200
+ser.port = '/dev/ttyUSB0'
+
+# Open serial port
+ser.open()
+time.sleep(1.50) # Wait for connection before sending any data
+
+# Robot initial state (waiting and stopped)
+ser.write(b'x')
+time.sleep(0.05)
+ser.write(b'w')
+time.sleep(0.05)
 
 # Initialize speech engine
 engine = pyttsx3.init()
@@ -99,16 +122,35 @@ try:
             elif char == ord('z'):
                 break
 
+        # Indicate hearing (stop moving and blink)
+        ser.write(b'x')
+        time.sleep(0.05)
+        ser.write(b'h')
+        time.sleep(0.05)
+
         # Start recording
         screen.addstr("...press 'z' again to stop speaking.", curses.A_UNDERLINE)
         record_speech(stream)
         screen.erase()        
+
+        # Indicate done hearing (twitch and wait)
+        ser.write(b'l')
+        time.sleep(0.15)
+        ser.write(b'x')
+        time.sleep(0.05)
+        ser.write(b'r')
+        time.sleep(0.15)
+        ser.write(b'x')
+        time.sleep(0.05)
+        ser.write(b'w')
+        time.sleep(0.05)
 
         # Get transcription from Whisper
         audio_file= open("speech.wav", "rb")
         transcription = openai.Audio.transcribe("whisper-1", audio_file)['text']
         conversation.append({'role': 'user', 'content': f'{transcription}'})
         screen.addstr(4, 0, "You: {0}\n".format(transcription), curses.A_STANDOUT)
+        screen.addstr(6, 0, " . . . ", curses.A_NORMAL)
         screen.refresh()
 
         # Get ChatGPT response
@@ -122,11 +164,46 @@ try:
         reply = response['choices'][0]['message']['content']
         conversation.append({'role': 'assistant', 'content': f'{reply}'})
 
-        # Speak reply
-        engine.say(reply)
+        # Split message from commands
+        split_reply = reply.split('##')
+        message = split_reply[0]
+        if len(split_reply) > 1:
+            command_string = split_reply[1]
+        else:
+            command_string = ""
+
+        # Indicate speaking (stop moving and blink)
+        ser.write(b'x')
+        time.sleep(0.05)
+        ser.write(b's')
+        time.sleep(0.05)
+
+        # Speak message
+        engine.say(message)
         engine.runAndWait()
-        screen.addstr(8, 0, "NB3: {0}\n".format(reply), curses.A_NORMAL)
+        screen.addstr(8, 0, "NB3: {0}\n".format(message), curses.A_NORMAL)
+        screen.addstr(12, 0, "- commands: {0}\n".format(command_string), curses.A_STANDOUT)
         screen.refresh()
+
+        # Indicate done speaking (stop moving and blink)
+        ser.write(b'x')
+        time.sleep(0.05)
+        ser.write(b'w')
+        time.sleep(0.05)
+
+        # Execute commands
+        commands = command_string.split(' ')
+        if(len(commands) > 1):
+            for c in commands:
+                dir = c[0].encode('utf-8')
+                dur = int(c[1:])
+                dur_f = dur / 1000.0
+                ser.write(dir)
+                time.sleep(dur_f)
+
+        # Stop
+        ser.write(b'x')
+        time.sleep(0.05)
 
 finally:
     # shut down
@@ -136,4 +213,5 @@ finally:
     screen.keypad(0)
     curses.echo()
     curses.endwin()
+    ser.close()
 # FIN
