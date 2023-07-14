@@ -9,7 +9,7 @@ import curses
 import time
 
 # Set OpenAI API Key (secret!!!)
-openai.api_key = "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"
+openai.api_key = "<secret>"
 
 # Initialize conversation history
 conversation = [
