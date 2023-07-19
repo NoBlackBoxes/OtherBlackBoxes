@@ -14,7 +14,7 @@ source keyword/bin/activate
 ## Install prerequisites
 
 ```bash
-pip3 install numpy scipy pyaudio python_speech_features
+pip3 install numpy scipy torch torchsummary matplotlib pyaudio timm python_speech_features
 ```
 
 ## Download dataset
