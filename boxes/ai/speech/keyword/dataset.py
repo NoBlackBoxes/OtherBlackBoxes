@@ -10,9 +10,10 @@ len_mfcc = 16
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
-    def __init__(self, wav_paths, targets, transform=None, target_transform=None, augment=False):
+    def __init__(self, wav_paths, targets, num_classes, transform=None, target_transform=None, augment=False):
         self.wav_paths = wav_paths
         self.targets = targets
+        self.num_classes = num_classes
         self.transform = transform
         self.target_transform = target_transform
         self.augment = augment
@@ -56,6 +57,13 @@ class custom(torch.utils.data.Dataset):
         if self.augment:
             mfccs = augment(mfccs)
         
+        # Add channel dimesnion
+        mfccs = np.expand_dims(mfccs, 0)
+
+        # COnvert to FLoat32
+        mfccs = np.float32(mfccs)
+        target = np.float32(target)
+
         return mfccs, target
 
 # Load dataset
@@ -82,9 +90,18 @@ def prepare(dataset_folder, split):
         targets.extend([class_id] * num_paths) # replicate this target label and append
         class_id += 1 
 
+    # Build target array
+    num_classes = class_id
+    target_arrays = []
+    base_target = np.zeros(num_classes)
+    for t in targets:
+        t_array = np.copy(base_target)
+        t_array[t] = 1.0
+        target_arrays.append(t_array)
+
     # Convert to arrays
     wav_paths = np.array(wav_paths)
-    targets = np.array(targets)
+    target_arrays = np.array(target_arrays)
 
     # Split train/test
     num_samples = len(targets)
@@ -96,10 +113,10 @@ def prepare(dataset_folder, split):
     test_indices = shuffled[num_train:]
 
     # Bundle
-    train_data = (wav_paths[train_indices], targets[train_indices])
-    test_data = (wav_paths[test_indices], targets[test_indices])
+    train_data = (wav_paths[train_indices], target_arrays[train_indices])
+    test_data = (wav_paths[test_indices], target_arrays[test_indices])
 
-    return train_data, test_data
+    return train_data, test_data, num_classes
 
 # Augment
 def augment(mfccs):
