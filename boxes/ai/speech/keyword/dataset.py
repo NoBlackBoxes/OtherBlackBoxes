@@ -5,15 +5,17 @@ import wave
 from python_speech_features import mfcc
 
 # Set parameters
-num_mfcc = 32
-len_mfcc = 37
+num_mfcc = 16
+len_mfcc = 16
+
+# Word to detect
+detection_word = 'sheila'
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
-    def __init__(self, wav_paths, targets, num_classes, transform=None, target_transform=None, augment=False):
+    def __init__(self, wav_paths, targets, transform=None, target_transform=None, augment=False):
         self.wav_paths = wav_paths
         self.targets = targets
-        self.num_classes = num_classes
         self.transform = transform
         self.target_transform = target_transform
         self.augment = augment
@@ -23,7 +25,7 @@ class custom(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         wav_path = self.wav_paths[idx]
-        target = self.targets[idx]
+        target = [self.targets[idx]]
 
         # Load WAV
         wav_obj = wave.open(wav_path)
@@ -34,11 +36,11 @@ class custom(torch.utils.data.Dataset):
         wav_obj.close()
 
         # Compute MFCCs
-        buffer = np.zeros((len_mfcc, num_mfcc), dtype=np.float64)
+        buffer = np.zeros((len_mfcc, num_mfcc), dtype=np.float32)
         mfccs = mfcc(sound, 
                     samplerate=fs,
                     winlen=0.100,
-                    winstep=0.025,
+                    winstep=0.064,
                     numcep=num_mfcc,
                     nfilt=num_mfcc,
                     nfft=4096,
@@ -60,7 +62,7 @@ class custom(torch.utils.data.Dataset):
         # Add channel dimesnion
         mfccs = np.expand_dims(mfccs, 0)
 
-        # COnvert to FLoat32
+        # Convert to FLoat32
         mfccs = np.float32(mfccs)
         target = np.float32(target)
 
@@ -79,7 +81,6 @@ def prepare(dataset_folder, split):
     # Find all WAV files
     wav_paths = []
     targets = []
-    class_id = 0
     for f in wav_folders:
         paths = os.listdir(f)
         full_paths = []
@@ -87,21 +88,19 @@ def prepare(dataset_folder, split):
             full_paths.append(f + '/' + path)
         num_paths = len(full_paths)
         wav_paths.extend(full_paths)
-        targets.extend([class_id] * num_paths) # replicate this target label and append
-        class_id += 1 
+        targets.extend([os. path. basename(f)] * num_paths) # replicate this target label and append
 
-    # Build target array
-    num_classes = class_id
-    target_arrays = []
-    base_target = np.zeros(num_classes)
+    # Determine target
+    target_array = []
     for t in targets:
-        t_array = np.copy(base_target)
-        t_array[t] = 1.0
-        target_arrays.append(t_array)
+        if t == detection_word:
+            target_array.append(1.0)
+        else:
+            target_array.append(0.0)
 
     # Convert to arrays
     wav_paths = np.array(wav_paths)
-    target_arrays = np.array(target_arrays)
+    target_array = np.array(target_array)
 
     # Split train/test
     num_samples = len(targets)
@@ -113,10 +112,10 @@ def prepare(dataset_folder, split):
     test_indices = shuffled[num_train:]
 
     # Bundle
-    train_data = (wav_paths[train_indices], target_arrays[train_indices])
-    test_data = (wav_paths[test_indices], target_arrays[test_indices])
+    train_data = (wav_paths[train_indices], target_array[train_indices])
+    test_data = (wav_paths[test_indices], target_array[test_indices])
 
-    return train_data, test_data, num_classes
+    return train_data, test_data
 
 # Augment
 def augment(mfccs):

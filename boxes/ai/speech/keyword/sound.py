@@ -22,7 +22,7 @@ class microphone:
 
         # Create rolling buffer
         self.max_samples = sample_rate * max_duration
-        self.sound = np.zeros(self.max_samples, dtype=np.float32)
+        self.sound = np.zeros(self.max_samples, dtype=np.int16)
         self.streaming = False
 
         # Configure thread
@@ -46,14 +46,13 @@ class microphone:
 
             # Convert to numpy array
             integer_data = np.frombuffer(raw_data, dtype=np.int16)
-            float_data = np.float32(integer_data)/32768.0
 
             # Fill buffer...and then concat
             if self.valid_samples < self.max_samples:
-                self.sound[self.valid_samples:(self.valid_samples + self.buffer_size)] = float_data
+                self.sound[self.valid_samples:(self.valid_samples + self.buffer_size)] = integer_data
                 self.valid_samples = self.valid_samples + self.buffer_size
             else:
-                self.sound = np.hstack([self.sound[self.buffer_size:], float_data])
+                self.sound = np.hstack([self.sound[self.buffer_size:], integer_data])
                 self.valid_samples = self.max_samples
         
         # Shutdown thread
@@ -67,9 +66,16 @@ class microphone:
         self.valid_samples = 0
         return self.sound[:num_valid_samples]
 
+    # Read most recent samples method
+    def read_latest(self, num_samples):
+        if(self.valid_samples < num_samples):
+            return self.sound[:num_samples]
+        else:
+            return self.sound[(self.valid_samples-num_samples):self.valid_samples]
+
     # Reset sound input
     def reset(self):
-        self.sound = np.zeros(self.max_samples, dtype=np.float32)
+        self.sound = np.zeros(self.max_samples, dtype=np.int16)
         self.valid_samples = 0
         return
 
@@ -117,8 +123,7 @@ class speaker:
             # Playing?
             if self.current_sample < self.max_samples:
                 # Write sound data buffer
-                float_data = self.sound[self.current_sample:(self.current_sample + self.buffer_size)]
-                integer_data = np.int16(float_data * 32768.0)
+                integer_data = self.sound[self.current_sample:(self.current_sample + self.buffer_size)]
                 self.stream.write(integer_data, self.buffer_size, exception_on_underflow = False)
 
                 # Increment buffer position
