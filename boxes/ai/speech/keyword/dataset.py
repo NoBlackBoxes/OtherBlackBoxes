@@ -5,8 +5,8 @@ import wave
 from python_speech_features import mfcc
 
 # Set parameters
-num_mfcc = 16
-len_mfcc = 16
+num_mfcc = 32
+len_mfcc = 37
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
@@ -34,13 +34,13 @@ class custom(torch.utils.data.Dataset):
         wav_obj.close()
 
         # Compute MFCCs
-        buffer = np.zeros((num_mfcc, len_mfcc), dtype=np.float64)
+        buffer = np.zeros((len_mfcc, num_mfcc), dtype=np.float64)
         mfccs = mfcc(sound, 
                     samplerate=fs,
-                    winlen=0.256,
-                    winstep=0.050,
+                    winlen=0.100,
+                    winstep=0.025,
                     numcep=num_mfcc,
-                    nfilt=26,
+                    nfilt=num_mfcc,
                     nfft=4096,
                     preemph=0.0,
                     ceplifter=0,
@@ -48,7 +48,7 @@ class custom(torch.utils.data.Dataset):
                     winfunc=np.hanning)
 
         # Fill buffer
-        buffer[:mfccs.shape[0], :len_mfcc] = mfccs
+        buffer[:mfccs.shape[0], :num_mfcc] = mfccs
 
         # Transpose MFCCs (rows = Fr, cols = time)
         mfccs = buffer.transpose()
