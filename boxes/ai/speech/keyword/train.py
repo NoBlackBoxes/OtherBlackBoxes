@@ -138,7 +138,7 @@ def test(_dataloader, _model, _loss_function):
     print(f"Test Results: \n Avg loss: {avg_test_loss:>8f}\n")
 
 # TRAIN
-epochs = 250
+epochs = 5
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader, custom_model, loss_fn, optimizer)

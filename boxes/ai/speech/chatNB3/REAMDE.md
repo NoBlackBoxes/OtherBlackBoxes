@@ -12,6 +12,10 @@ You can connect any speaker with a standard 3.5 mm plug (the headphone plug) int
 pip3 install openai
 pip3 install pyttsx3
 
+## For keyword detection, also install the following Python packages
+pip3 install torch 
+pip3 install python_speech_features
+
 ## Install text-to-speech library
 sudo apt install espeak
 

@@ -9,7 +9,7 @@ num_mfcc = 16
 len_mfcc = 16
 
 # Word to detect
-detection_word = 'sheila'
+detection_word = 'marvin'
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
