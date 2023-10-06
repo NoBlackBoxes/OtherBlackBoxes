@@ -1,104 +1,41 @@
 # AI : diffusion
 
-## Install Stable Diffusion (v2.0)
+Note: If using RunPod, then make sure to increase pos size ('Edit Pod')
 
-Clone Repository
-
-```bash
-mkdir tmp
-cd tmp
-git clone https://github.com/Stability-AI/stablediffusion
-```
+## Install Stable Diffusion XL
 
 Create (and enter) Python virtual environment
 
 ```bash
-mkdir venv
-cd venv
-python3 -m venv diffusion
-source diffusion/bin/activate
+mkdir _tmp
+cd _tmp
+python3 -m venv OBB
+source OBB/bin/activate
 ```
 
 Setup "Diffusion" Environment
 
 ```bash
-cd ../stablediffusion
-python3 setup.py develop
-pip install -r requirements.txt
-pip install invisible-watermark
-pip install cutlass
-# pip uninstall torch
-# pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
-
-# If using diffusers library...
-pip install --upgrade git+https://github.com/huggingface/diffusers.git transformers accelerate scipy
+pip install diffusers transformers accelerate safetensors omegaconf pillow
 ```
 
-Install Xformers (requires recent nvcc and gcc)
+## Run simple example
 
-```bash
-cd ..
-git clone https://github.com/facebookresearch/xformers.git
-cd xformers
-git submodule update --init --recursive
-pip install -r requirements.txt
-pip install -e .
-cd ../stablediffusion
-```
+```python
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, AutoPipelineForText2Image
+from PIL import Image
+import torch
 
-Download weights
+pipeline = StableDiffusionXLPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, variant="fp16", use_safetensors=True
+).to("cuda")
 
-```bash
-mkdir weights
-cd weights
-wget https://huggingface.co/stabilityai/stable-diffusion-2-base/resolve/main/512-base-ema.ckpt
-wget https://huggingface.co/stabilityai/stable-diffusion-2/resolve/main/768-v-ema.ckpt
-# Note: 4.9 Gigabytes
-cd ..
-```
+pipeline_text2image = AutoPipelineForText2Image.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, variant="fp16", use_safetensors=True
+).to("cuda")
 
-Test model
-
-```bash
-# Base model
-python scripts/txt2img.py --prompt "a blueprint style drawing of a school designed by buckminster fuller" --ckpt weights/512-base-ema.ckpt --config configs/stable-diffusion/v2-inference.yaml --H 256 --W 256
-
-# V model
-python scripts/txt2img.py --prompt "professional photograph of a school designed by buckminster fuller" --ckpt weights/768-v-ema.ckpt --config configs/stable-diffusion/v2-inference-v.yaml --H 768 --W 768
-```
-
-## ONNX
-
-Convert stable diffusion to ONNX format
-
-```bash
-pip install onnx
-pip install onnxruntime
-pip install onnxruntime-openvino # Intel
-cd tmp
-git clone https://github.com/huggingface/diffusers
-mkdir onnx
-python diffusers/scripts/convert_stable_diffusion_checkpoint_to_onnx.py \
-  --model_path="stabilityai/stable-diffusion-2" \
-  --output_path="onnx/stablediffusion_onnx"
-```
-
-
-Build OpenVINO
-
-```bash
-git clone https://github.com/openvinotoolkit/openvino.git
-cd openvino
-git submodule update --init --recursive
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make --jobs=$(nproc --all)
-```
-
-# NVIDIA GPUs
-
-# AMD GPUs
-```bash
-pip uninstall torch
-pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/rocm5.2
+prompt = "a hyper-realistic photograph of a completely imaginary thing."
+image = pipeline(prompt=prompt).images[0]
+image.save('test.png')
+#FIN
 ```
