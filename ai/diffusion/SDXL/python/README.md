@@ -1,4 +1,4 @@
-# AI : diffusion
+# AI : diffusion : XL
 
 Note: If using RunPod, then make sure to increase pos size ('Edit Pod')
 
