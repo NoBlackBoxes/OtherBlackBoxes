@@ -5,8 +5,8 @@
 Clone Repository
 
 ```bash
-mkdir tmp
-cd tmp
+mkdir _tmp
+cd _tmp
 git clone https://github.com/openai/whisper
 ```
 
