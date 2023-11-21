@@ -105,10 +105,10 @@ while True:
     transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
     # Print transcription
-    print(transcription + ' - ({0}:{1})'.format(start_position, read_position))
+    print(transcription + ' - ({0}::{1})'.format(start_position, read_position))
 
     # Write transcription
-    output_file.write(transcription + ',{0},{1}\n'.format(start_position, read_position))
+    output_file.write(transcription + '::{0}::{1}\n'.format(start_position, read_position))
 
 # Shutdown
 wav_file.close()
