@@ -6,7 +6,7 @@ from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import wave
 
 # Extract audio from video
-video_path = "_tmp/LBB_electronics_2_2021.mkv"
+video_path = "_tmp/LBB_curriculum_test.mkv"
 video = mp.VideoFileClip(video_path)
 width = video.size[0]
 height = video.size[1]
