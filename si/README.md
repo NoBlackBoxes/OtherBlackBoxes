@@ -1,6 +1,11 @@
 # SI Units
 
-Where do they come from? How are they defined?
+Where do they come from? 
+The Si units are a coherent system of units, which 
+
+How are they defined?
+Each unit has a prescribed constant associated with it. These constants has an axiomatic numerical value when written with the SI unit, for each of these units the International Bureau of Weights and Measures has a prescribed technique for realising these units, though it expresses that any solution consistent with current physics understanding is also a valid method for deriving these units.
+
 
 ## 
 the 7 base units and their corrosponding constants:
@@ -42,9 +47,9 @@ the 22 derived units
 
 
 history:
-orginated as a result that the centimetre - second - gram system, a system which seeked to define all untis using only those three base units, had two sets of units for the two constiuent part of the electromagnetic field. These differed by the speed of light, then following maxwell's paper which ultimtely unified the fields did this relation become explained with the proposed electromagnetic wave - aka light - which travels with constant speed, c = 1/sqrt(mu_0 epsilon_r).
+SI units originated as a result that the centimetre - second - gram system, a system which seeked to define all units using only those three base units, however it had two sets of units for the two constiuent part of the electromagnetic field. These differed by the speed of light, then following maxwell's paper, which ultimately unified the two fields, did this relation become explained - with the proposed electromagnetic wave - aka light - which travels with constant speed, c = 1/sqrt(mu_0 epsilon_r).
 
-there has been a push in the scientific community to define these units not using artefacts - which can naturally change with time and introduce irremovable uncertaintities when replicating - and instead towards idealised and abstract definitons, which do not suffer from such limitations.
+there has been a push in the scientific community to define these units not using artefacts - which can naturally change with time and introduce irremovable uncertaintities when replicating - and instead towards idealised and abstract definitons, which do not suffer from such limitations. Thus in 2019 
 
 
 TO Do for demonstration:
