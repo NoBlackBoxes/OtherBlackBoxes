@@ -15,14 +15,15 @@ candela - intensity of light - luminous efficacy
 
 the 22 derived units 
 |Unit|equation relating it to base units|derivation using other derived terms|
-|radian|m/m = 1|
-|steradian|m^2/m^2 = 1|
-|hertz|1/s|
-|newton|kgm/s^2|
+|----|----------------------------------|------------------------------------|
+|radian|m/m = 1||
+|steradian|m^2/m^2 = 1||
+|hertz|1/s||
+|newton|kgm/s^2||
 |pascal|kg/ms^2|N/m^2 = J/m^3|
 |joule|kgm^2/s^2|Nm = Pam^3|
 |watt|kgm^2/s^3|J/s|
-|coulomb|sA|
+|coulomb|sA||
 |volt|kgm^2/s^3A|W/A = J/C|
 |farad|s^4A^2/kgm^2|C/V = C^2/J|
 |ohm|kgm^2/s^3A^2|V/A=Js/C^2|
@@ -30,13 +31,13 @@ the 22 derived units
 |weber|kgm^2/s^2A|Vs|
 |tesla|kg/s^2A|Wb/m^2|
 |henry|kgm^2/s^2A^2|Wb/A|
-|ºC|K (same scaling per unit simply different zero points - namely 273.15K)|
+|ºC|K (same scaling per unit simply different zero points - namely 273.15K)||
 |lumen|cdm^2/m^2 = cd|cdsr|
 |lux|cdm^2/m^4 = cd/m^2|lm/m^2 = cdsr/m^2|
-|becquerel|1/s|
+|becquerel|1/s||
 |gray|m^2/s^2|J/kg|
 |sievert|m^2/s^2|J/kg|
-|katal|mol/s|
+|katal|mol/s||
 
 
 history:
