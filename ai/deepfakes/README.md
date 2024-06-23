@@ -42,6 +42,9 @@ cd models
 wget -O detection.pth https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth
 # - based on: https://arxiv.org/abs/1708.05237
 
+# Download detection model weights (https://github.com/hhj1897/face_alignment/tree/master)
+wget -O alignment.pth https://github.com/ibug-group/face_alignment/raw/master/ibug/face_alignment/fan/weights/2dfan2_alt.pth
+# - based on: https://arxiv.org/abs/1708.05237
 ```
 
 ## Environment
