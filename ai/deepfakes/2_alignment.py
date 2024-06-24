@@ -15,11 +15,11 @@ sys.path.append(libs_path)
 import torch
 import numpy as np
 import alignment.model as model
+import alignment.utilities as utilities
 from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib import colormaps
 import matplotlib.patches as patches
-from torchvision import transforms
 
 # Debug
 debug = True
@@ -44,7 +44,7 @@ print(f"Using {device} device")
 alignment_model.to(device)
 
 # Load test image
-image_path = repo_path + '/ai/tracking/_data/people.jpg'
+image_path = repo_path + '/ai/tracking/_data/nose_256.jpg'
 image = Image.open(image_path)
 image = image.resize((256,256))
 image = np.array(image)
@@ -55,7 +55,7 @@ if debug:
 image = image.transpose(2, 0, 1)
 image = np.expand_dims(image, 0)
 
-# Detect Face(s)
+# Detect Face Ekypoints (68)
 with torch.no_grad():
 
     # Move model to device
@@ -70,9 +70,17 @@ with torch.no_grad():
     input = input - torch.tensor([104.0, 117.0, 123.0], device=device).view(1, 3, 1, 1)
 
     # Inference
-    output = alignment_model(input)
+    output = alignment_model(input)[0].cpu().detach().numpy()
 
-    # Parse output into keypoints
+    # Post-process predictions (into keypoints)
+    preds, preds_orig, scores = utilities.get_preds_fromhm(output)
+    points = preds[0,:,:] * 4.0
+
+    if debug:
+        plt.imshow(original)
+        plt.plot(points[:,0], points[:,1], 'g.')
+        plt.show()
+
 
     # Align face
 

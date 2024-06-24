@@ -24,12 +24,8 @@ import matplotlib.patches as patches
 # Debug
 debug = True
 
-# Get user name
-username = os.getlogin()
-
 # Specify paths
-repo_path = '/home/' + username + '/NoBlackBoxes/OtherBlackBoxes'
-box_path = repo_path + '/ai/deepfakes'
+box_path = base_path
 model_path = box_path + '/_tmp/models/detection.pth'
 
 # Load model
@@ -41,7 +37,7 @@ device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is
 print(f"Using {device} device")
 
 # Load test image
-image_path = repo_path + '/ai/tracking/_data/people.jpg'
+image_path = base_path + '/_data/people.jpg'
 image = Image.open(image_path)
 image = np.array(image)
 if debug:
