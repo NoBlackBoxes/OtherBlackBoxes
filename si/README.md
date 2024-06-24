@@ -24,7 +24,7 @@ the 7 base units and their corrosponding constants:
 the 22 derived units 
 |Unit|equation relating it to base units|derivation using other derived terms|
 |----|----------------------------------|------------------------------------|
-|radian|m/m = 1||
+|radian|$\frac{m}{m} = 1$||
 |steradian|m^2/m^2 = 1||
 |hertz|1/s||
 |newton|kgm/s^2||
