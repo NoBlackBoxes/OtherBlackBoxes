@@ -37,9 +37,13 @@ device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is
 print(f"Using {device} device")
 
 # Load test image
-image_path = base_path + '/_data/people.jpg'
+image_path = base_path + '/_data/nose.png'
 image = Image.open(image_path)
 image = np.array(image)
+B = np.copy(image[:,:,2])
+R = np.copy(image[:,:,0])
+image[:,:,0] = B
+image[:,:,2] = R
 if debug:
     original = np.copy(image)
     plt.imshow(original)
@@ -58,7 +62,6 @@ with torch.no_grad():
 
     # Send to GPU
     input = input.to(device)
-    input = input.flip(-3)  # RGB to BGR
     input = input - torch.tensor([104.0, 117.0, 123.0], device=device).view(1, 3, 1, 1)
 
     # Inference

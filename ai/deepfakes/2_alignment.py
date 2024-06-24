@@ -28,8 +28,7 @@ debug = True
 username = os.getlogin()
 
 # Specify paths
-repo_path = '/home/' + username + '/NoBlackBoxes/OtherBlackBoxes'
-box_path = repo_path + '/ai/deepfakes'
+box_path = base_path
 model_path = box_path + '/_tmp/models/alignment.pth'
 
 # Load model
@@ -44,10 +43,22 @@ print(f"Using {device} device")
 alignment_model.to(device)
 
 # Load test image
-image_path = repo_path + '/ai/tracking/_data/nose_256.jpg'
+bbox = np.array([145.5059495 ,  66.96476746, 316.6059556 , 323.59864807])
+
+image_path = base_path + '/_data/nose_256.jpg'
 image = Image.open(image_path)
 image = image.resize((256,256))
 image = np.array(image)
+B = np.copy(image[:,:,2])
+R = np.copy(image[:,:,0])
+image[:,:,0] = B
+image[:,:,2] = R
+
+crop_ratio=0.55
+centre = ((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
+face_size = ((bbox[2] - bbox[0]) + (bbox[3] - bbox[1])) / 2.0
+enlarged_face_box_size = (face_size / crop_ratio)
+
 if debug:
     original = np.copy(image)
     plt.imshow(original)
@@ -55,32 +66,36 @@ if debug:
 image = image.transpose(2, 0, 1)
 image = np.expand_dims(image, 0)
 
-# Detect Face Ekypoints (68)
+# Detect Face Keypoints (68)
 with torch.no_grad():
 
     # Move model to device
     alignment_model.to(device)
 
     # Preprocess image
-    input = torch.tensor(image, dtype=torch.float32)
+    input = torch.tensor(image, dtype=torch.float32) / 255.0
 
     # Send to GPU
     input = input.to(device)
-    input = input.flip(-3)  # RGB to BGR
-    input = input - torch.tensor([104.0, 117.0, 123.0], device=device).view(1, 3, 1, 1)
 
     # Inference
-    output = alignment_model(input)[0].cpu().detach().numpy()
-
-    # Post-process predictions (into keypoints)
-    preds, preds_orig, scores = utilities.get_preds_fromhm(output)
-    points = preds[0,:,:] * 4.0
+    heatmaps, stem_feats, hg_feats = alignment_model(input)
+    
+    # Post-process keypoints
+    landmarks, landmark_scores = utilities.decode(heatmaps)    
+    landmark = landmarks[0]
+    hh, hw = heatmaps.size(2), heatmaps.size(3)
+    left = 0
+    right = 255
+    top = 0
+    bottom = 255
+    landmark[:, 0] = landmark[:, 0] * (right - left) / hw + left
+    landmark[:, 1] = landmark[:, 1] * (bottom - top) / hh + top
 
     if debug:
         plt.imshow(original)
-        plt.plot(points[:,0], points[:,1], 'g.')
+        plt.plot(landmark[:,0], landmark[:,1], 'y.')
         plt.show()
-
 
     # Align face
 
