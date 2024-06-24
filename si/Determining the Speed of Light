@@ -1,0 +1,10 @@
+The speed of light is used to derive the value of a metre so a logical place to begin determining a meter is a value for the speed of light.
+To do this we will require the four Maxwell equations in a vacuum:
+
+
+$\grad\cdot E = 0$
+$\grad\cdpt B = 0$
+$\grad\cross E = - \frac{\partial B}{\partial t}$
+$
+
+and the vector identity:
