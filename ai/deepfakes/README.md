@@ -3,7 +3,8 @@
 Creating autoencoder-based deepfakes (face swaps) from scratch (in python/pytorch)
 
 1. Face Extraction
- - Face detection and alignment
+ - Face detection
+ - Face alignment
 2. Training (Joint-Encoder and Seperate-Decoder)
 3. Swapping
 4. Compositing
@@ -29,6 +30,12 @@ source _tmp/DF/bin/activate
 
 ```bash
 pip install numpy matplotlib torch torchvision pillow python-dotenv
+```
+
+For AMD GPUs
+```bash
+pip uninstall torch
+pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/rocm6.0
 ```
 
 4. Download model weights

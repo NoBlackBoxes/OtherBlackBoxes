@@ -20,7 +20,6 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib import colormaps
 import matplotlib.patches as patches
-from torchvision import transforms
 
 # Debug
 debug = True
