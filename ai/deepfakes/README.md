@@ -34,6 +34,8 @@ source _tmp/DF/bin/activate
 pip install numpy matplotlib torch torchvision pillow python-dotenv
 ```
 
+*Note*: On Windows, you may need to downgrade to numpy 1.26.4
+
 For AMD GPUs
 ```bash
 pip uninstall torch
