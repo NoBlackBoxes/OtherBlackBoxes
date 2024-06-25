@@ -11,7 +11,9 @@ Creating autoencoder-based deepfakes (face swaps) from scratch (in python/pytorc
 
 ## Requirements
 
-1. Create a virtual environment
+*Note:* All commands should be run inside the "ai/deepfakes" folder
+
+1. Create a python virtual environment
 
 ```bash
 mkdir _tmp

@@ -24,9 +24,6 @@ import matplotlib.patches as patches
 # Debug
 debug = True
 
-# Get user name
-username = os.getlogin()
-
 # Specify paths
 box_path = base_path
 model_path = box_path + '/_tmp/models/alignment.pth'
