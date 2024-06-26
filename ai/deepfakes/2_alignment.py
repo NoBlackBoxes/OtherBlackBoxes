@@ -50,11 +50,16 @@ B = np.copy(image[:,:,2])
 R = np.copy(image[:,:,0])
 image[:,:,0] = B
 image[:,:,2] = R
-
 crop_ratio=0.55
 centre = ((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
 face_size = ((bbox[2] - bbox[0]) + (bbox[3] - bbox[1])) / 2.0
 enlarged_face_box_size = (face_size / crop_ratio)
+
+# Gaspard
+# Here we would like to load the text file saved during detection
+#  Extract the bounding box values (left, top, right, bottom)
+#  Then "crop" the input image using this rectangle. (So we only send the face to the keypoint detection model)
+
 
 if debug:
     original = np.copy(image)
