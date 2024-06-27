@@ -40,12 +40,12 @@ print(f"Using {device} device")
 image_path = base_path + '/_data/nose.png'
 image = Image.open(image_path)
 image = np.array(image)
+original = np.copy(image)
 B = np.copy(image[:,:,2])
 R = np.copy(image[:,:,0])
 image[:,:,0] = B
 image[:,:,2] = R
 if debug:
-    original = np.copy(image)
     plt.imshow(original)
     plt.show()
 image = image.transpose(2, 0, 1)
@@ -74,17 +74,16 @@ with torch.no_grad():
     bboxlists = utilities.get_predictions(output, 1)
     bboxlist = utilities.filter_bboxes(bboxlists[0], 0.5)
 
-    # Gaspard
+    # Save Bounding Box
     bbox = bboxlist[0]  # Select the first bounding box
     left= bbox[0]       # Left border (in pixels)
     top = bbox[1]       # Top border (in pixels)
     right = bbox[2]     # Right border (in pixels)
     bottom = bbox[3]    # Bottom border (in pixels)
-    # Save the left, top, right, and bottom pixel values to a text file with the same name as the input image (but with the suffix .txt)
-    image_path = base_path + '/_data/nose.png'  # This was the image path
-    # Create a new file path that is identicial, but replace the last three letters with "txt"
-    # Write the pixel values to a file (google this). Seperate each value with a comma, as it makes reading the values easier
-
+    file_path = image_path[:-4] + '.txt'    
+    file = open(file_path, "w")
+    file.write(f"{left:.2f},{top:.2f},{right:.2f},{bottom:.2f}\n")
+    file.close()
 
     # Debug
     if debug:

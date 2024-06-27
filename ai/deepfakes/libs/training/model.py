@@ -9,6 +9,13 @@ class model(torch.nn.Module):
         self.input_shape = (64, 64, 3)
         self.encoder_dim = 1024
 
+        # Encoder
+        self.encoder = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 128, kernel_size = (1,1)),
+
+
+        )
+
 
     # Forward
     def forward(self, x):

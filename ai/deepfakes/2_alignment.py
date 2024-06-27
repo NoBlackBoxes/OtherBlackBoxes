@@ -40,29 +40,31 @@ print(f"Using {device} device")
 alignment_model.to(device)
 
 # Load test image
-bbox = np.array([145.5059495 ,  66.96476746, 316.6059556 , 323.59864807])
-
-image_path = base_path + '/_data/nose_256.jpg'
+image_path = base_path + '/_data/people.jpg'
 image = Image.open(image_path)
-image = image.resize((256,256))
 image = np.array(image)
+original = np.copy(image)
 B = np.copy(image[:,:,2])
 R = np.copy(image[:,:,0])
 image[:,:,0] = B
 image[:,:,2] = R
-crop_ratio=0.55
-centre = ((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
-face_size = ((bbox[2] - bbox[0]) + (bbox[3] - bbox[1])) / 2.0
-enlarged_face_box_size = (face_size / crop_ratio)
 
-# Gaspard
-# Here we would like to load the text file saved during detection
-#  Extract the bounding box values (left, top, right, bottom)
-#  Then "crop" the input image using this rectangle. (So we only send the face to the keypoint detection model)
+# Load bounding box coordinates
+file_path = image_path[:-4] + '.txt'
+bbox = np.genfromtxt(file_path, delimiter=",")
+
+# 
+left = bbox[0]
 
 
+# CROP
+# Resize to 256,256
+
+#crop_ratio=0.55
+#centre = ((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
+#face_size = ((bbox[2] - bbox[0]) + (bbox[3] - bbox[1])) / 2.0
+#enlarged_face_box_size = (face_size / crop_ratio)
 if debug:
-    original = np.copy(image)
     plt.imshow(original)
     plt.show()
 image = image.transpose(2, 0, 1)
