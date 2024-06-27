@@ -37,7 +37,7 @@ device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is
 print(f"Using {device} device")
 
 # Load test image
-image_path = base_path + '/_data/nose.png'
+image_path = base_path + '/_data/Man_Beard.jpg'
 image = Image.open(image_path)
 image = np.array(image)
 original = np.copy(image)

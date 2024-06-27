@@ -39,8 +39,10 @@ print(f"Using {device} device")
 # Move model to device
 alignment_model.to(device)
 
+
 # Load test image
-image_path = base_path + '/_data/people.jpg'
+image_path = base_path + '/_data/Man_Beard.jpg'
+'''
 image = Image.open(image_path)
 image = np.array(image)
 original = np.copy(image)
@@ -48,22 +50,50 @@ B = np.copy(image[:,:,2])
 R = np.copy(image[:,:,0])
 image[:,:,0] = B
 image[:,:,2] = R
+'''
 
 # Load bounding box coordinates
 file_path = image_path[:-4] + '.txt'
 bbox = np.genfromtxt(file_path, delimiter=",")
 
-# 
-left = bbox[0]
 
 
 # CROP
+im = Image.open(image_path)
+width, height = im.size
+
+left= bbox[0]       
+top = bbox[1]       
+right = bbox[2]     
+bottom = bbox[3] 
+
+im1 = im.crop((left, top, right, bottom))
+
+
 # Resize to 256,256
+cropped_image = im1.resize((256, 256))
+cropped_path = file_path[:-4] + '-Cropped.jpg'
+cropped_image.save(cropped_path)
+
+
+#Test
+image = Image.open(cropped_path)
+image = np.array(image)
+original = np.copy(image)
+B = np.copy(image[:,:,2])
+R = np.copy(image[:,:,0])
+image[:,:,0] = B
+image[:,:,2] = R
+
+
 
 #crop_ratio=0.55
 #centre = ((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
 #face_size = ((bbox[2] - bbox[0]) + (bbox[3] - bbox[1])) / 2.0
 #enlarged_face_box_size = (face_size / crop_ratio)
+
+
+
 if debug:
     plt.imshow(original)
     plt.show()
