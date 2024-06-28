@@ -2,15 +2,15 @@
 
 Creating autoencoder-based deepfakes (face swaps) from scratch (in python/pytorch)
 
+0. Dataset generation
 1. Face Extraction
- - Face detection
- - Face alignment
+   - Face detection
+   - Face alignment
 2. Training (Joint-Encoder and Seperate-Decoder)
 3. Swapping
 4. Compositing
 
 ## Requirements
-
 *Note:* All commands should be run inside the "ai/deepfakes" folder
 
 1. Create a python virtual environment
@@ -31,7 +31,7 @@ source _tmp/DF/bin/activate
 3. Install required python libraries/packages
 
 ```bash
-pip install numpy matplotlib torch torchvision python-dotenv opencv-python
+pip install numpy matplotlib torch torchvision torchsummary python-dotenv opencv-python
 ```
 
 *Note*: On Windows, you may need to downgrade to numpy 1.26.4
