@@ -31,7 +31,7 @@ source _tmp/DF/bin/activate
 3. Install required python libraries/packages
 
 ```bash
-pip install numpy matplotlib torch torchvision pillow python-dotenv
+pip install numpy matplotlib torch torchvision python-dotenv opencv-python
 ```
 
 *Note*: On Windows, you may need to downgrade to numpy 1.26.4
