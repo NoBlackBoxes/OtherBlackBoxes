@@ -14,9 +14,10 @@ sys.path.append(libs_path)
 # Import libraries
 import torch
 import numpy as np
+import glob
+import cv2
 import alignment.model as model
 import alignment.utilities as utilities
-from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib import colormaps
 import matplotlib.patches as patches
@@ -27,6 +28,7 @@ debug = True
 # Specify paths
 box_path = base_path
 model_path = box_path + '/_tmp/models/alignment.pth'
+input_folder = base_path + '/_tmp/dataset/B'
 
 # Load model
 alignment_model = model.model()
@@ -39,98 +41,108 @@ print(f"Using {device} device")
 # Move model to device
 alignment_model.to(device)
 
+# Find all input files (bounding box text files)
+face_paths = glob.glob(input_folder + "/*.txt")
 
-# Load test image
-image_path = base_path + '/_data/Man_Beard.jpg'
-'''
-image = Image.open(image_path)
-image = np.array(image)
-original = np.copy(image)
-B = np.copy(image[:,:,2])
-R = np.copy(image[:,:,0])
-image[:,:,0] = B
-image[:,:,2] = R
-'''
+# Detect face keypoints and align all images
+for i, face_path in enumerate(face_paths):
+    image_path = face_path[:-4] + '.jpg'
 
-# Load bounding box coordinates
-file_path = image_path[:-4] + '.txt'
-bbox = np.genfromtxt(file_path, delimiter=",")
+    # Load bounding box coordinates
+    bbox = np.genfromtxt(face_path, delimiter=",")
 
+    # Crop and resize image
+    image = cv2.imread(image_path)
+    original = np.copy(image)
+    left = round(bbox[0])
+    top = round(bbox[1])
+    right = round(bbox[2])
+    bottom = round(bbox[3])
+    width = right-left
+    height = bottom-top
+    if width > height:    
+        extra_height = int((width-height)/2)
+        new_left = left
+        new_right = right
+        new_top = top - extra_height
+        new_bottom = bottom + extra_height
+    else:
+        extra_width = int((height-width)/2)
+        new_left = left - extra_width
+        new_right = right + extra_width
+        new_top = top
+        new_bottom = bottom
 
+    # Ignore edge cases
+    if(new_left < 0):
+        continue
+    if(new_right > (image.shape[1]-1)):
+        continue
+    if(new_top < 0):
+        continue
+    if(new_bottom > (image.shape[0]-1)):
+        continue
 
-# CROP
-im = Image.open(image_path)
-width, height = im.size
+    cropped = image[new_top:new_bottom, new_left:new_right]
+    scale = cropped.shape[0]/256
+    resized = cv2.resize(cropped, (256, 256))
+    image = np.array(resized)
+    image = image.transpose(2, 0, 1)
+    image = np.expand_dims(image, 0)
 
-left= bbox[0]       
-top = bbox[1]       
-right = bbox[2]     
-bottom = bbox[3] 
+    # Detect Face Keypoints (68)
+    with torch.no_grad():
 
-im1 = im.crop((left, top, right, bottom))
+        # Preprocess image
+        input = torch.tensor(image, dtype=torch.float32) / 255.0
 
+        # Send to GPU
+        input = input.to(device)
 
-# Resize to 256,256
-cropped_image = im1.resize((256, 256))
-cropped_path = file_path[:-4] + '-Cropped.jpg'
-cropped_image.save(cropped_path)
+        # Inference
+        heatmaps, stem_feats, hg_feats = alignment_model(input)
+        
+        # Post-process keypoints
+        landmarks, landmark_scores = utilities.decode(heatmaps)    
+        landmark = landmarks[0]
+        hh, hw = heatmaps.size(2), heatmaps.size(3)
+        landmark[:, 0] = landmark[:, 0] * 4
+        landmark[:, 1] = landmark[:, 1] * 4
 
+        # Compute angle
+        left_eye = np.mean(landmark[36:42], axis=0)
+        right_eye = np.mean(landmark[42:48], axis=0)
+        dX = right_eye[0] - left_eye[0]
+        dY = right_eye[1] - left_eye[1]
+        tangent = -dY/dX
+        angle = np.atan(tangent) * (360.0 / (2.0 * 3.1415926))
 
-#Test
-image = Image.open(cropped_path)
-image = np.array(image)
-original = np.copy(image)
-B = np.copy(image[:,:,2])
-R = np.copy(image[:,:,0])
-image[:,:,0] = B
-image[:,:,2] = R
+        # Find average color
+        background = np.mean(np.mean(original, axis=0), axis=0)
 
+        # Rotate image
+        cx = 128
+        cy = 128
+        M = cv2.getRotationMatrix2D((cx,cy), -1*angle, 1.0)
+        aligned = cv2.warpAffine(resized, M, (256,256), borderValue=background)
 
+        # Save aligned face
+        aligned_path = face_path[:-4] + '_aligned.jpg'
+        ret = cv2.imwrite(aligned_path, aligned)
 
-#crop_ratio=0.55
-#centre = ((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
-#face_size = ((bbox[2] - bbox[0]) + (bbox[3] - bbox[1])) / 2.0
-#enlarged_face_box_size = (face_size / crop_ratio)
-
-
-
-if debug:
-    plt.imshow(original)
-    plt.show()
-image = image.transpose(2, 0, 1)
-image = np.expand_dims(image, 0)
-
-# Detect Face Keypoints (68)
-with torch.no_grad():
-
-    # Move model to device
-    alignment_model.to(device)
-
-    # Preprocess image
-    input = torch.tensor(image, dtype=torch.float32) / 255.0
-
-    # Send to GPU
-    input = input.to(device)
-
-    # Inference
-    heatmaps, stem_feats, hg_feats = alignment_model(input)
-    
-    # Post-process keypoints
-    landmarks, landmark_scores = utilities.decode(heatmaps)    
-    landmark = landmarks[0]
-    hh, hw = heatmaps.size(2), heatmaps.size(3)
-    left = 0
-    right = 255
-    top = 0
-    bottom = 255
-    landmark[:, 0] = landmark[:, 0] * (right - left) / hw + left
-    landmark[:, 1] = landmark[:, 1] * (bottom - top) / hh + top
-
-    if debug:
-        plt.imshow(original)
-        plt.plot(landmark[:,0], landmark[:,1], 'y.')
-        plt.show()
-
-    # Align face
+        # Display
+        if debug:
+            x_landmarks = (scale * landmark[:, 0]) + new_left
+            y_landmarks = (scale * landmark[:, 1]) + new_top
+            plt.subplot(1,2,1)
+            plt.imshow(original)
+            plt.plot(x_landmarks[:], y_landmarks[:], 'y.')
+            plt.plot(x_landmarks[36:42], y_landmarks[36:42], 'g.')
+            plt.plot(x_landmarks[42:48], y_landmarks[42:48], 'r.')
+            plt.subplot(1,2,2)
+            plt.imshow(aligned)
+            plt.show()
+            if i > 10:
+             debug = False
 
 #FIN
