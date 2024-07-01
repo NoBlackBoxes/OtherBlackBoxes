@@ -15,9 +15,9 @@ sys.path.append(libs_path)
 import cv2
 
 # Specify paths
-video_path = base_path + '/_tmp/dataset/B/raw/beast_clips.mp4'
-video_name = "beast_clips"
-output_folder = base_path + '/_tmp/dataset/B'
+video_path = base_path + '/_tmp/dataset/C/raw/adam_talking.mkv'
+video_name = "adam_talking"
+output_folder = base_path + '/_tmp/dataset/C'
 
 # Open Video
 video = cv2.VideoCapture(video_path)

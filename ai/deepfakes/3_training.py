@@ -25,34 +25,42 @@ import matplotlib.patches as patches
 from importlib import reload
 
 # Debug
-debug = True
+debug = False
 
 # Specify paths
 box_path = base_path
 model_path = box_path + '/_tmp/models/training.pth'
 interim_folder = box_path + '/_tmp/models/interim'
-dataset_folder_A = base_path + '/_tmp/dataset/A'
-dataset_folder_B = base_path + '/_tmp/dataset/B'
+dataset_folder_A = base_path + '/_tmp/dataset/B'
+dataset_folder_B = base_path + '/_tmp/dataset/C'
 
 # Prepare datasets
 reload(dataset)
-#train_data_A, test_data_A = dataset.prepare(dataset_folder_A, 0.8)
+train_data_A, test_data_A = dataset.prepare(dataset_folder_A, 0.8)
 train_data_B, test_data_B = dataset.prepare(dataset_folder_B, 0.8)
 
 # Create datasets
-#train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=False)
-#test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=False)
+train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=False)
+test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=False)
 train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=False)
 test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=False)
 
 # Create data loaders
-#train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=32, shuffle=True)
-#test_dataloader_A = torch.utils.data.DataLoader(test_dataset_A, batch_size=32, shuffle=True)
+train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=32, shuffle=True)
+test_dataloader_A = torch.utils.data.DataLoader(test_dataset_A, batch_size=32, shuffle=True)
 train_dataloader_B = torch.utils.data.DataLoader(train_dataset_B, batch_size=32, shuffle=True)
 test_dataloader_B = torch.utils.data.DataLoader(test_dataset_B, batch_size=32, shuffle=True)
 
 # Inspect dataset?
 if debug:
+    train_features, train_targets = next(iter(train_dataloader_A))
+    for i in range(9):
+        plt.subplot(3,3,i+1)
+        feature = train_features[i]
+        image = np.transpose(feature, (1,2,0))
+        image = np.uint8(image * 255.0)
+        plt.imshow(image)
+    plt.show()
     train_features, train_targets = next(iter(train_dataloader_B))
     for i in range(9):
         plt.subplot(3,3,i+1)
@@ -67,8 +75,10 @@ reload(model)
 training_model = model.model()
 
 # Set loss function
-loss_fn = torch.nn.L1Loss()
-optimizer = torch.optim.Adam(training_model.parameters(), lr=0.00005, betas=(0.5,0.999))
+loss_fn_A = torch.nn.L1Loss()
+loss_fn_B = torch.nn.L1Loss()
+optimizer_A = torch.optim.Adam([{'params': training_model.encoder.parameters()}, {'params': training_model.decoder_A.parameters()}], lr=5e-5, betas=(0.5, 0.999))
+optimizer_B = torch.optim.Adam([{'params': training_model.encoder.parameters()}, {'params': training_model.decoder_B.parameters()}], lr=5e-5, betas=(0.5, 0.999))
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
@@ -79,60 +89,88 @@ training_model.to(device)
 summary(training_model, (3, 64, 64))
 #summary(training_model, (512, 8, 8))
 
-image_path = "/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/deepfakes/_tmp/dataset/B/beast_clips_1_aligned.jpg"
-image = cv2.imread(image_path)
-image = cv2.resize(image, (64,64))
-image = image.transpose(2, 0, 1)
-image = np.expand_dims(image, 0)
-input = torch.tensor(image, dtype=torch.float32) / 255.0
-input = input.to(device)
-output = training_model(input)
-
 # Define training
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
+def train(dataloader_A, dataloader_B, batch_size, model, loss_fn_A, loss_fn_B, optimizer_A, optimizer_B):
+    size_A = len(dataloader_A.dataset)
+    size_B = len(dataloader_B.dataset)
     model.train()
-    for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device)
+    min_size = min(size_A, size_B)
+    num_batches = min_size // batch_size
+    for i in range(num_batches):
+        features_A, targets_A = next(iter(train_dataloader_A))
+        features_B, targets_B = next(iter(train_dataloader_B))
+        features_A = features_A.to(device)
+        targets_A = targets_A.to(device)
+        features_B = features_B.to(device)
+        targets_B = targets_B.to(device)
 
-        # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
-        #print(" - range: {0:.3f} to {1:.3f}".format(pred[0].min(), pred[0].max()))
+        # Compute prediction error A
+        pred_A = model(features_A, select='A')
+        loss_A = loss_fn_A(pred_A, targets_A)
 
+        # Compute prediction error B
+        pred_B = model(features_B, select='B')
+        loss_B = loss_fn_B(pred_B, targets_B)
+
+        # Zero-gradients
+        optimizer_A.zero_grad()
+        optimizer_B.zero_grad()
+        
         # Backpropagation
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+        loss_A.backward()
+        loss_B.backward()
 
-        if batch % 2 == 0:
-            loss, current = loss.item(), batch * len(X)
-            pixel_loss = np.sqrt(loss) * 224.0
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}], pixel_loss: {pixel_loss:>5f}")
+        # Increment weights
+        optimizer_A.step()
+        optimizer_B.step()
+
+        # Report progress
+        if i % 2 == 0:
+            print(f"loss_A: {loss_A:>7f} | loss_B: {loss_B:>7f}")
 
 # Define testing
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
+def test(dataloader_A, dataloader_B, batch_size, model, loss_fn_A, loss_fn_B):
+    size_A = len(dataloader_A.dataset)
+    size_B = len(dataloader_B.dataset)
     model.eval()
-    test_loss = 0.0
+    min_size = min(size_A, size_B)
+    num_batches = min_size // batch_size
+    test_loss_A = 0.0
+    test_loss_B = 0.0
     with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-    test_loss /= num_batches
-    pixel_loss = np.sqrt(test_loss) * 224.0
-    print(f"Test Error: \n Avg loss: {test_loss:>8f}, pixel_loss: {pixel_loss:>5f}")
-    pred = pred.cpu().detach().numpy()
-    print(f" - mean prediction: {np.mean(np.mean(np.mean((np.abs(pred)))))}\n")
+        for i in range(num_batches):
+            features_A, targets_A = next(iter(train_dataloader_A))
+            features_B, targets_B = next(iter(train_dataloader_B))
+            features_A = features_A.to(device)
+            targets_A = targets_A.to(device)
+            features_B = features_B.to(device)
+            targets_B = targets_B.to(device)
+
+            # Compute prediction error A
+            pred_A = model(features_A, select='A')
+            loss_A = loss_fn_A(pred_A, targets_A)
+
+            # Compute prediction error B
+            pred_B = model(features_B, select='B')
+            loss_B = loss_fn_B(pred_B, targets_B)
+
+    # Report average test loss
+    loss_A /= num_batches
+    loss_B /= num_batches
+    print(f"Test Error: \n Avg loss A: {loss_A:>8f}, Avg loss B: {loss_B:>8f}")
+    pred_A = pred_A.cpu().detach().numpy()
+    pred_B = pred_B.cpu().detach().numpy()
+    print(f" - mean prediction A: {np.mean(np.mean(np.mean((np.abs(pred_A)))))}")
+    print(f" - mean prediction B: {np.mean(np.mean(np.mean((np.abs(pred_B)))))}\n")
 
 # TRAIN
 epochs = 1000
+batch_size = 32
+torch.autograd.set_detect_anomaly(True)
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader_B, training_model, loss_fn, optimizer)
-    test(test_dataloader_B, training_model, loss_fn)
+    train(train_dataloader_A, train_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B, optimizer_A, optimizer_B)
+    test(test_dataloader_A, test_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B)
     if (t % 10) == 0:
         # Save interim model
         torch.save(training_model.state_dict(), interim_folder + f"/training_{t}.pth")

@@ -28,7 +28,7 @@ debug = True
 # Specify paths
 box_path = base_path
 model_path = box_path + '/_tmp/models/alignment.pth'
-input_folder = base_path + '/_tmp/dataset/B'
+input_folder = base_path + '/_tmp/dataset/C'
 
 # Load model
 alignment_model = model.model()
