@@ -29,7 +29,7 @@ debug = True
 
 # Specify paths
 box_path = base_path
-model_path = box_path + '/_tmp/models/interim/training_120.pth'
+model_path = box_path + '/_tmp/models/interim/training_100.pth'
 dataset_folder_A = base_path + '/_tmp/dataset/B'
 dataset_folder_B = base_path + '/_tmp/dataset/C'
 
@@ -52,13 +52,13 @@ test_dataloader_B = torch.utils.data.DataLoader(test_dataset_B, batch_size=32, s
 
 # Inspect dataset?
 if debug:
-    train_features, train_targets = next(iter(train_dataloader_B))
+    train_features, train_targets = next(iter(train_dataloader_A))
     for i in range(9):
         plt.subplot(3,3,i+1)
         feature = train_features[i]
         image = np.transpose(feature, (1,2,0))
         image = np.uint8(image * 255.0)
-        plt.imshow(image)
+        plt.imshow(image[:,:,::-1])
     plt.show()
 
 # Load model
@@ -93,7 +93,7 @@ for i in range(9):
     output = np.transpose(output, (1,2,0))
     output = np.uint8(output * 255.0)
     display = np.hstack((image,output))
-    plt.imshow(display)
+    plt.imshow(display[:,:,::-1])
 plt.show()
 
 #FIN
