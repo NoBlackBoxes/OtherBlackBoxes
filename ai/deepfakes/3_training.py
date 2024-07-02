@@ -176,9 +176,27 @@ for t in range(epochs):
     if (t % 1000) == 0:
         # Save interim model
         torch.save(training_model.state_dict(), interim_folder + f"/training_{t}.pth")
-    if (t % 10) == 0:
+    if (t % 1) == 0:
         # Save latest model
         torch.save(training_model.state_dict(), model_path)
+
+        # Save current preview
+        preview_image_path = "/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/deepfakes/_tmp/dataset/C/adam_intro_4_aligned.jpg"
+        preview_output_path = f"/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/deepfakes/_tmp/dataset/results/{t:04d}.jpg"
+        original = cv2.imread(preview_image_path)
+        image = cv2.resize(original, (64,64))
+        image = image.transpose(2, 0, 1)
+        image = np.expand_dims(image, 0)
+        input = torch.tensor(image, dtype=torch.float32) / 255.0
+        input = input.to(device)
+        outputs = training_model(input, 'B')
+        outputs = outputs.cpu().detach().numpy()
+        output = outputs[0]
+        output = np.transpose(output, (1,2,0))
+        output = np.uint8(output * 255.0)
+        resized = cv2.resize(output, (256,256))
+        display = np.hstack((original,resized))
+        cv2.imwrite(preview_output_path, display)
 print("Done!")
 
 # Save final model
