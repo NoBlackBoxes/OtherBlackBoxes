@@ -40,10 +40,10 @@ train_data_A, test_data_A = dataset.prepare(dataset_folder_A, 0.8)
 train_data_B, test_data_B = dataset.prepare(dataset_folder_B, 0.8)
 
 # Create datasets
-train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=False)
-test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=False)
-train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=False)
-test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=False)
+train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=True)
+test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=True)
+train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=True)
+test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=True)
 
 # Create data loaders
 train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=16, shuffle=True)
@@ -149,15 +149,17 @@ def test(dataloader_A, dataloader_B, batch_size, model, loss_fn_A, loss_fn_B):
             # Compute prediction error A
             pred_A = model(features_A, select='A')
             loss_A = loss_fn_A(pred_A, targets_A)
+            test_loss_A += loss_A
 
             # Compute prediction error B
             pred_B = model(features_B, select='B')
             loss_B = loss_fn_B(pred_B, targets_B)
+            test_loss_B += loss_B
 
     # Report average test loss
-    loss_A /= num_batches
-    loss_B /= num_batches
-    print(f"Test Error: \n Avg loss A: {loss_A:>8f}, Avg loss B: {loss_B:>8f}")
+    test_loss_A /= num_batches
+    test_loss_B /= num_batches
+    print(f"Test Error: \n Avg loss A: {test_loss_A:>8f}, Avg loss B: {test_loss_B:>8f}")
     pred_A = pred_A.cpu().detach().numpy()
     pred_B = pred_B.cpu().detach().numpy()
     print(f" - mean prediction A: {np.mean(np.mean(np.mean((np.abs(pred_A)))))}")

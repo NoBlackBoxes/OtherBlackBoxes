@@ -23,7 +23,7 @@ from matplotlib import colormaps
 import matplotlib.patches as patches
 
 # Debug
-debug = False
+debug = True
 
 # Specify paths
 box_path = base_path
@@ -41,29 +41,31 @@ print(f"Using {device} device")
 # Move model to device
 detection_model.to(device)
 
-# Find all input files
-image_paths = glob.glob(input_folder + "/*.jpg")
+# Find all input files (exclude already aligned files)
+all_image_paths = glob.glob(input_folder + "/*.jpg")
+image_paths = [path for path in all_image_paths if 'aligned' not in path]
 num_images = len(image_paths)
 
 # Detect face bounding boxes in all images
 for i, image_path in enumerate(image_paths):
     print(f"{i} of {num_images}")
 
-    # Load test image
+    # Load image
     image = cv2.imread(image_path)
-    image = np.array(image)
+    width = image.shape[1]
+    height = image.shape[0]
     if debug:
-        B = np.copy(image[:,:,0])
-        R = np.copy(image[:,:,2])
         original = np.copy(image)
-        original[:,:,0] = R
-        original[:,:,2] = B
-        plt.imshow(original)
+        plt.imshow(original[:,:,::-1])
         plt.show()
-        if i > 3:
+        if i >= 2:
              debug = False
     image = image.transpose(2, 0, 1)
     image = np.expand_dims(image, 0)
+
+    # Exlude images that are too large
+    if ((width > 2000) or (height > 2000)):
+         continue
 
     # Detect Face(s)
     with torch.no_grad():
@@ -74,9 +76,6 @@ for i, image_path in enumerate(image_paths):
         # Send to GPU
         input = input.to(device)
         input = input - torch.tensor([104.0, 117.0, 123.0], device=device).view(1, 3, 1, 1)
-        print(input.shape)
-        if input.shape[2] > 2000: # Too big
-             continue
 
         # Inference
         output = detection_model(input)
@@ -91,12 +90,24 @@ for i, image_path in enumerate(image_paths):
         # Are there faces?
         if len(bboxlist) > 0:
 
-            # Save Bounding Box
+            # Extract Bounding Box
             bbox = bboxlist[0]  # Select the first bounding box
             left= bbox[0]       # Left border (in pixels)
             top = bbox[1]       # Top border (in pixels)
             right = bbox[2]     # Right border (in pixels)
             bottom = bbox[3]    # Bottom border (in pixels)
+
+            # Enforce boundary conditions
+            if (left < 0):
+                 left = 0
+            if (right > (width-1)):
+                 right = (width-1)
+            if (top < 0):
+                 top = 0
+            if (bottom > (height-1)):
+                 bottom = (height-1)
+
+            # Save Bounding Box
             file_path = image_path[:-4] + '.txt'    
             file = open(file_path, "w")
             file.write(f"{left:.2f},{top:.2f},{right:.2f},{bottom:.2f}\n")
@@ -104,7 +115,7 @@ for i, image_path in enumerate(image_paths):
 
             # Debug
             if debug:
-                plt.imshow(original)
+                plt.imshow(original[:,:,::-1])
                 cmap = colormaps['tab20']
                 colors = cmap(np.linspace(0, 1, len(bboxlist)))
                 for i, bbox in enumerate(bboxlist):

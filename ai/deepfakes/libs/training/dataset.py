@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import cv2
 import torch
 import glob
+import training.utilities as utilities
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class dataset(torch.utils.data.Dataset):
@@ -58,8 +59,12 @@ def filter(dataset_folder):
 
 # Augment
 def augment(image):
-    augmented_image = np.clone(image)
-    # What augmentations make sense?
+    rotation_range = 10
+    zoom_range = 0.05
+    shift_range = 0.05
+    random_flip = 0.4
+    augmented_image = utilities.random_transform(image, rotation_range, zoom_range, shift_range, random_flip)
+    augmented_image = cv2.resize(augmented_image, (64,64))
     return augmented_image
 
 #FIN
