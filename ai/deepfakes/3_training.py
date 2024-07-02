@@ -173,9 +173,12 @@ for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader_A, train_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B, optimizer_A, optimizer_B)
     test(test_dataloader_A, test_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B)
-    if (t % 100) == 0:
+    if (t % 1000) == 0:
         # Save interim model
         torch.save(training_model.state_dict(), interim_folder + f"/training_{t}.pth")
+    if (t % 10) == 0:
+        # Save latest model
+        torch.save(training_model.state_dict(), model_path)
 print("Done!")
 
 # Save final model
