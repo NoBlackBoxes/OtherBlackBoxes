@@ -23,12 +23,12 @@ from matplotlib import colormaps
 import matplotlib.patches as patches
 
 # Debug
-debug = True
+debug = False
 
 # Specify paths
 box_path = base_path
 model_path = box_path + '/_tmp/models/alignment.pth'
-input_folder = base_path + '/_tmp/dataset/C'
+input_folder = base_path + '/_tmp/dataset/D'
 
 # Load model
 alignment_model = model.model()
@@ -43,9 +43,11 @@ alignment_model.to(device)
 
 # Find all input files (bounding box text files)
 face_paths = glob.glob(input_folder + "/*.txt")
+num_faces = len(face_paths)
 
 # Detect face keypoints and align all images
 for i, face_path in enumerate(face_paths):
+    print(f"{i} of {num_faces}")
     image_path = face_path[:-4] + '.jpg'
 
     # Load bounding box coordinates
@@ -142,7 +144,7 @@ for i, face_path in enumerate(face_paths):
             plt.subplot(1,2,2)
             plt.imshow(aligned)
             plt.show()
-            if i > 10:
+            if i > 3:
              debug = False
 
 #FIN

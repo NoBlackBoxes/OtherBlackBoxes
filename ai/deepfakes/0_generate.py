@@ -15,9 +15,9 @@ sys.path.append(libs_path)
 import cv2
 
 # Specify paths
-video_path = base_path + '/_tmp/dataset/C/raw/adam_talking.mkv'
-video_name = "adam_talking"
-output_folder = base_path + '/_tmp/dataset/C'
+video_path = base_path + '/_tmp/dataset/B/raw/beast_clips.mp4'
+video_name = "beast_clips"
+output_folder = base_path + '/_tmp/dataset/B'
 
 # Open Video
 video = cv2.VideoCapture(video_path)
@@ -25,6 +25,7 @@ num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
 # Extract and save frames
 for i, f in enumerate(range(0,num_frames,30)):
+    print(f"{f} of {num_frames}")
     ret = video.set(cv2.CAP_PROP_POS_FRAMES, f)
     ret, image = video.read()
     output_path = output_folder + f"/{video_name}_{i}.jpg"

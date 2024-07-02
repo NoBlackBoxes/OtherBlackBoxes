@@ -31,8 +31,8 @@ debug = False
 box_path = base_path
 model_path = box_path + '/_tmp/models/training.pth'
 interim_folder = box_path + '/_tmp/models/interim'
-dataset_folder_A = base_path + '/_tmp/dataset/B'
-dataset_folder_B = base_path + '/_tmp/dataset/C'
+dataset_folder_A = base_path + '/_tmp/dataset/C'
+dataset_folder_B = base_path + '/_tmp/dataset/D'
 
 # Prepare datasets
 reload(dataset)
@@ -46,10 +46,10 @@ train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=False)
 test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=False)
 
 # Create data loaders
-train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=32, shuffle=True)
-test_dataloader_A = torch.utils.data.DataLoader(test_dataset_A, batch_size=32, shuffle=True)
-train_dataloader_B = torch.utils.data.DataLoader(train_dataset_B, batch_size=32, shuffle=True)
-test_dataloader_B = torch.utils.data.DataLoader(test_dataset_B, batch_size=32, shuffle=True)
+train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=16, shuffle=True)
+test_dataloader_A = torch.utils.data.DataLoader(test_dataset_A, batch_size=16, shuffle=True)
+train_dataloader_B = torch.utils.data.DataLoader(train_dataset_B, batch_size=16, shuffle=True)
+test_dataloader_B = torch.utils.data.DataLoader(test_dataset_B, batch_size=16, shuffle=True)
 
 # Inspect dataset?
 if debug:
@@ -125,7 +125,7 @@ def train(dataloader_A, dataloader_B, batch_size, model, loss_fn_A, loss_fn_B, o
         optimizer_B.step()
 
         # Report progress
-        if i % 2 == 0:
+        if i % 20 == 0:
             print(f"loss_A: {loss_A:>7f} | loss_B: {loss_B:>7f}")
 
 # Define testing
@@ -165,13 +165,13 @@ def test(dataloader_A, dataloader_B, batch_size, model, loss_fn_A, loss_fn_B):
 
 # TRAIN
 epochs = 1000
-batch_size = 32
+batch_size = 16
 torch.autograd.set_detect_anomaly(True)
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader_A, train_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B, optimizer_A, optimizer_B)
     test(test_dataloader_A, test_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B)
-    if (t % 10) == 0:
+    if (t % 100) == 0:
         # Save interim model
         torch.save(training_model.state_dict(), interim_folder + f"/training_{t}.pth")
 print("Done!")

@@ -29,9 +29,9 @@ debug = True
 
 # Specify paths
 box_path = base_path
-model_path = box_path + '/_tmp/models/interim/training_100.pth'
-dataset_folder_A = base_path + '/_tmp/dataset/B'
-dataset_folder_B = base_path + '/_tmp/dataset/C'
+model_path = box_path + '/_tmp/models/interim/training_400.pth'
+dataset_folder_A = base_path + '/_tmp/dataset/C'
+dataset_folder_B = base_path + '/_tmp/dataset/D'
 
 # Prepare datasets
 reload(dataset)
@@ -74,13 +74,13 @@ print(f"Using {device} device")
 training_model.to(device)
 
 # Display image input and output
-features, targets = next(iter(test_dataloader_B))
+features, targets = next(iter(test_dataloader_A))
 print(f"Feature batch shape: {features.size()}")
 print(f"Targets batch shape: {targets.size()}")
 
 # Let's run it
 features_gpu = features.to(device)
-outputs = training_model(features_gpu, 'A')
+outputs = training_model(features_gpu, 'B')
 outputs = outputs.cpu().detach().numpy()
 
 # Examine predictions

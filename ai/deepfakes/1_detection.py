@@ -23,12 +23,12 @@ from matplotlib import colormaps
 import matplotlib.patches as patches
 
 # Debug
-debug = True
+debug = False
 
 # Specify paths
 box_path = base_path
 model_path = box_path + '/_tmp/models/detection.pth'
-input_folder = base_path + '/_tmp/dataset/C'
+input_folder = base_path + '/_tmp/dataset/D'
 
 # Load model
 detection_model = model.model()
@@ -43,9 +43,11 @@ detection_model.to(device)
 
 # Find all input files
 image_paths = glob.glob(input_folder + "/*.jpg")
+num_images = len(image_paths)
 
 # Detect face bounding boxes in all images
 for i, image_path in enumerate(image_paths):
+    print(f"{i} of {num_images}")
 
     # Load test image
     image = cv2.imread(image_path)
@@ -58,7 +60,7 @@ for i, image_path in enumerate(image_paths):
         original[:,:,2] = B
         plt.imshow(original)
         plt.show()
-        if i > 10:
+        if i > 3:
              debug = False
     image = image.transpose(2, 0, 1)
     image = np.expand_dims(image, 0)
@@ -72,6 +74,9 @@ for i, image_path in enumerate(image_paths):
         # Send to GPU
         input = input.to(device)
         input = input - torch.tensor([104.0, 117.0, 123.0], device=device).view(1, 3, 1, 1)
+        print(input.shape)
+        if input.shape[2] > 2000: # Too big
+             continue
 
         # Inference
         output = detection_model(input)
