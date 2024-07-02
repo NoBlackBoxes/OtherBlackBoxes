@@ -29,7 +29,7 @@ debug = True
 
 # Specify paths
 box_path = base_path
-model_path = box_path + '/_tmp/models/interim/training_300.pth'
+model_path = box_path + '/_tmp/models/training.pth'
 dataset_folder_A = base_path + '/_tmp/dataset/C'
 dataset_folder_B = base_path + '/_tmp/dataset/D'
 
@@ -39,16 +39,15 @@ train_data_A, test_data_A = dataset.prepare(dataset_folder_A, 0.8)
 train_data_B, test_data_B = dataset.prepare(dataset_folder_B, 0.8)
 
 # Create datasets
-train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=True)
-test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=True)
-train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=True)
-test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=True)
-
+train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=True, warp=False)
+test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=True, warp=False)
+train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=True, warp=False)
+test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=True, warp=False)
 # Create data loaders
-train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=32, shuffle=True)
-test_dataloader_A = torch.utils.data.DataLoader(test_dataset_A, batch_size=32, shuffle=True)
-train_dataloader_B = torch.utils.data.DataLoader(train_dataset_B, batch_size=32, shuffle=True)
-test_dataloader_B = torch.utils.data.DataLoader(test_dataset_B, batch_size=32, shuffle=True)
+train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=16, shuffle=True)
+test_dataloader_A = torch.utils.data.DataLoader(test_dataset_A, batch_size=16, shuffle=True)
+train_dataloader_B = torch.utils.data.DataLoader(train_dataset_B, batch_size=16, shuffle=True)
+test_dataloader_B = torch.utils.data.DataLoader(test_dataset_B, batch_size=16, shuffle=True)
 
 # Inspect dataset?
 if debug:

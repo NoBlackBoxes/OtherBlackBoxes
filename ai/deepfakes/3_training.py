@@ -26,6 +26,7 @@ from importlib import reload
 
 # Debug
 debug = False
+preview = True
 
 # Specify paths
 box_path = base_path
@@ -40,10 +41,10 @@ train_data_A, test_data_A = dataset.prepare(dataset_folder_A, 0.8)
 train_data_B, test_data_B = dataset.prepare(dataset_folder_B, 0.8)
 
 # Create datasets
-train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=True)
-test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=True)
-train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=True)
-test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=True)
+train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=True, warp=True)
+test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=True, warp=True)
+train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=True, warp=True)
+test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=True, warp=True)
 
 # Create data loaders
 train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=16, shuffle=True)
@@ -165,38 +166,54 @@ def test(dataloader_A, dataloader_B, batch_size, model, loss_fn_A, loss_fn_B):
     print(f" - mean prediction A: {np.mean(np.mean(np.mean((np.abs(pred_A)))))}")
     print(f" - mean prediction B: {np.mean(np.mean(np.mean((np.abs(pred_B)))))}\n")
 
+# Gather preview images
+preview_image_folder = dataset_folder_A + "/preview"
+if preview:
+    preview_image_paths = glob.glob(preview_image_folder + "/*aligned.jpg")
+    preview_image_paths = sorted(preview_image_paths)
+    num_previews = len(preview_image_paths)
+    preview_count = 0
+
 # TRAIN
-epochs = 1000
+epochs = 10000
 batch_size = 16
 torch.autograd.set_detect_anomaly(True)
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader_A, train_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B, optimizer_A, optimizer_B)
     test(test_dataloader_A, test_dataloader_B, batch_size, training_model, loss_fn_A, loss_fn_B)
-    if (t % 1000) == 0:
-        # Save interim model
-        torch.save(training_model.state_dict(), interim_folder + f"/training_{t}.pth")
+
+    # Save latest and checkpoints
     if (t % 1) == 0:
         # Save latest model
         torch.save(training_model.state_dict(), model_path)
+    if (t % 1000) == 0:
+        # Save interim model
+        torch.save(training_model.state_dict(), interim_folder + f"/training_{t}.pth")
 
-        # Save current preview
-        preview_image_path = "/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/deepfakes/_tmp/dataset/C/adam_intro_4_aligned.jpg"
-        preview_output_path = f"/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/deepfakes/_tmp/dataset/results/{t:04d}.jpg"
-        original = cv2.imread(preview_image_path)
-        image = cv2.resize(original, (64,64))
-        image = image.transpose(2, 0, 1)
-        image = np.expand_dims(image, 0)
-        input = torch.tensor(image, dtype=torch.float32) / 255.0
-        input = input.to(device)
-        outputs = training_model(input, 'B')
-        outputs = outputs.cpu().detach().numpy()
-        output = outputs[0]
-        output = np.transpose(output, (1,2,0))
-        output = np.uint8(output * 255.0)
-        resized = cv2.resize(output, (256,256))
-        display = np.hstack((original,resized))
-        cv2.imwrite(preview_output_path, display)
+    # Preview?
+    if preview:
+        if (t % 2) == 0:
+            # Update preview image
+            preview_image_path = preview_image_paths[preview_count]
+            preview_count = (preview_count + 1) % num_previews
+        if (t % 1) == 0:
+            # Save current preview
+            preview_output_path = f"/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/deepfakes/_tmp/dataset/results/{t:05d}.jpg"
+            original = cv2.imread(preview_image_path)
+            image = cv2.resize(original, (64,64))
+            image = image.transpose(2, 0, 1)
+            image = np.expand_dims(image, 0)
+            input = torch.tensor(image, dtype=torch.float32) / 255.0
+            input = input.to(device)
+            outputs = training_model(input, 'B')
+            outputs = outputs.cpu().detach().numpy()
+            output = outputs[0]
+            output = np.transpose(output, (1,2,0))
+            output = np.uint8(output * 255.0)
+            resized = cv2.resize(output, (256,256))
+            display = np.hstack((original,resized))
+            cv2.imwrite(preview_output_path, display)
 print("Done!")
 
 # Save final model
