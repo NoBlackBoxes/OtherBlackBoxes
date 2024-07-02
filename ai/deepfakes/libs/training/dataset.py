@@ -8,9 +8,10 @@ import training.utilities as utilities
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class dataset(torch.utils.data.Dataset):
-    def __init__(self, image_paths, augment=False):
+    def __init__(self, image_paths, augment=False, warp=False):
         self.image_paths = image_paths
         self.augment = augment
+        self.warp = warp
 
     def __len__(self):
         return len(self.image_paths)
@@ -21,14 +22,17 @@ class dataset(torch.utils.data.Dataset):
 
         # Augment (or just resize)
         if self.augment:
-            image = augment(image)
+            image, target = augment(image, self.warp)
         else:
             image = cv2.resize(image, (64,64))
+            target = np.copy(image)
 
         # Convert to scaled tensor
         image = image.transpose(2, 0, 1)
         input = torch.tensor(image, dtype=torch.float32) / 255.0
-        return input, input
+        target = target.transpose(2, 0, 1)
+        target = torch.tensor(target, dtype=torch.float32) / 255.0
+        return input, target
 
 # Load dataset
 def prepare(dataset_folder, split):
@@ -58,13 +62,17 @@ def filter(dataset_folder):
     return np.array(image_paths)
 
 # Augment
-def augment(image):
+def augment(image, warp):
     rotation_range = 10
     zoom_range = 0.05
     shift_range = 0.05
     random_flip = 0.4
-    augmented_image = utilities.random_transform(image, rotation_range, zoom_range, shift_range, random_flip)
-    augmented_image = cv2.resize(augmented_image, (64,64))
-    return augmented_image
+    random_image = utilities.random_transform(image, rotation_range, zoom_range, shift_range, random_flip)
+    if warp:
+        augmented_image, augmented_target = utilities.random_warp(random_image)
+    else:
+        augmented_image = cv2.resize(random_image, (64,64))
+        augmented_target = np.copy(augmented_image)
+    return augmented_image, augmented_target
 
 #FIN
