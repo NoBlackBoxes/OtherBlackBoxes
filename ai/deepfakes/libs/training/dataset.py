@@ -39,6 +39,8 @@ def prepare(dataset_folder, split):
 
     # Filter train and test datasets
     image_paths = filter(dataset_folder)
+    print(f"For dataset in {dataset_folder}...")
+    print(f"  - Number of aligned dataset images: {len(image_paths)}")
 
     # Split train/test
     num_samples = len(image_paths)

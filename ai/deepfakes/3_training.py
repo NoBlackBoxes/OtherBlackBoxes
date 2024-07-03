@@ -26,7 +26,9 @@ from importlib import reload
 
 # Debug
 debug = False
-preview = True
+preview = False
+retrain = False
+warp = True
 
 # Specify paths
 box_path = base_path
@@ -41,10 +43,10 @@ train_data_A, test_data_A = dataset.prepare(dataset_folder_A, 0.8)
 train_data_B, test_data_B = dataset.prepare(dataset_folder_B, 0.8)
 
 # Create datasets
-train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=True, warp=True)
-test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=True, warp=True)
-train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=True, warp=True)
-test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=True, warp=True)
+train_dataset_A = dataset.dataset(image_paths=train_data_A, augment=True, warp=warp)
+test_dataset_A = dataset.dataset(image_paths=test_data_A, augment=True, warp=warp)
+train_dataset_B = dataset.dataset(image_paths=train_data_B, augment=True, warp=warp)
+test_dataset_B = dataset.dataset(image_paths=test_data_B, augment=True, warp=warp)
 
 # Create data loaders
 train_dataloader_A = torch.utils.data.DataLoader(train_dataset_A, batch_size=16, shuffle=True)
@@ -74,6 +76,8 @@ if debug:
 # Load model
 reload(model)
 training_model = model.model()
+if retrain:
+    training_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 
 # Set loss function
 loss_fn_A = torch.nn.L1Loss()
