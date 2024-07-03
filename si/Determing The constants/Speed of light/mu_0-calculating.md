@@ -19,5 +19,5 @@ using the ammeter make a measurement of both currents and record the mass presen
 
 Result:
 Using: $F=mg$ and $F=l\frac{\mu_0I_1I_2}{2\pi r}$
-and equating the two equations and then rearranging the value of $\mu_0 can be calculated$
+and equating the two equations and then rearranging the value of $\mu_0$ can be calculated
 
