@@ -4,11 +4,10 @@ Creating autoencoder-based deepfakes (face swaps) from scratch (in python/pytorc
 
 0. Dataset generation
 1. Face Extraction
-   - Face detection
-   - Face alignment
-2. Training (Joint-Encoder and Seperate-Decoder)
-3. Swapping
-4. Compositing
+2. Face alignment
+3. Training (Joint-Encoder and Seperate-Decoder)
+4. Inpsection
+5. Swapping
 
 ## Requirements
 *Note:* All commands should be run inside the "ai/deepfakes" folder
