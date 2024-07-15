@@ -31,8 +31,8 @@ debug = True
 
 # Specify paths
 box_path = base_path
-video_path = base_path + '/_tmp/dataset/C/raw/adam_hof.mp4'
-video_name = "adam_hof"
+video_path = base_path + '/_tmp/dataset/C/raw/adam_intro.mp4'
+video_name = "adam_intro"
 output_folder = base_path + '/_tmp/dataset/C/swap'
 detection_model_path = box_path + '/_tmp/models/detection.pth'
 alignment_model_path = box_path + '/_tmp/models/alignment.pth'
@@ -63,7 +63,7 @@ video = cv2.VideoCapture(video_path)
 width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-num_frames = 600
+num_frames = 1200
 
 # Open Output Video
 output_video_path = base_path + f"/_tmp/dataset/C/swap/{video_name}_swap.avi"
@@ -120,8 +120,11 @@ for i, f in enumerate(range(0,num_frames, 1)):
             if (bottom > (height-1)):
                  bottom = (height-1)
         else:
-             print("No face found!")
-             continue
+            print("No face found!")
+            output_path = output_folder + f"/{video_name}_{i:04d}.jpg"
+            ret = cv2.imwrite(output_path, original)
+            ret = output_video.write(original)
+            continue
 
     # --------------
     # Align the face
@@ -199,11 +202,12 @@ for i, f in enumerate(range(0,num_frames, 1)):
     bbox_width = new_right-new_left
     bbox_height = new_bottom-new_top
     resized = cv2.resize(output, (bbox_width,bbox_height))
-    mask = cv2.resize(mask, (bbox_width,bbox_height))
-    for r in range(bbox_height):
-         for c in range (bbox_width):
-              if mask[r,c] == 1:
-                   original[r+new_top,c+new_left] = resized[r,c]
+    original[new_top:new_bottom, new_left:new_right] = resized
+    #mask = cv2.resize(mask, (bbox_width,bbox_height))
+    #for r in range(bbox_height):
+    #     for c in range (bbox_width):
+    #          if mask[r,c] == 1:
+    #               original[r+new_top,c+new_left] = resized[r,c]
     output_path = output_folder + f"/{video_name}_{i:04d}.jpg"
     ret = cv2.imwrite(output_path, original)
     ret = output_video.write(original)
