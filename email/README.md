@@ -8,12 +8,8 @@ Instructions to generate and send automated emails
 pip install numpy pandas python-dotenv odfpy
 ```
 
-## Student (Group) database
-Create an ODS file with the following format
-
-```csv
-last name, first name, email
-```
+## Recipient (Group) List
+Create an ODS file with the following format with columns with field names, must have "First Name" and "Email"
 
 ## Sending
 - You will need a password manager installed

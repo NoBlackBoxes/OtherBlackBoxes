@@ -6,10 +6,7 @@ Email: List Class
 """
 
 # Import libraries
-import os
-import re
 import pandas as pd
-import Email.utilities as Utilities
 
 # List Class
 class List:
