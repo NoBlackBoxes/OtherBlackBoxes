@@ -46,7 +46,7 @@ class Template:
         return
 
     def parse_fields(self, line):
-        fields = re.findall(r'<(.+?)>', line)
+        fields = re.findall(r'{(.+?)}', line)
         for field in fields:
             self.fields.append(field)
         return

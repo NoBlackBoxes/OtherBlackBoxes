@@ -49,7 +49,7 @@ class Message:
     def replace_fields(self, fields, line):
         for field in fields:
             value = self.group[1][field].values[0]
-            line = line.replace(f"<{field}>", str(value))
+            line = line.replace(f"{{{field}}}", str(value))
         # If line has "empty" field (nan) and whitespace, return None
         trimmed = line.strip()
         if trimmed == "nan":

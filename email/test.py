@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Build the LBB site
+Test bulk email sending
 
 @author: kampff
 """
@@ -36,11 +36,11 @@ importlib.reload(Message)
 
 #----------------------------------------------------------
 # Debug
-debug = False
+debug = True
 
 # Specify paths
-template_path = "/home/kampff/NoBlackBoxes/OtherBlackBoxes/email/template.txt"
-list_path = "/home/kampff/NoBlackBoxes/OtherBlackBoxes/email/list.ods"
+template_path = base_path + "/template.txt"
+list_path = base_path + "/list.ods"
 
 # Load template
 template = Template.Template(template_path)

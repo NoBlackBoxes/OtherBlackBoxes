@@ -1,20 +1,25 @@
-Email Subject: Can contain named fields, like <Group ID>.
+Email Subject: Can contain named fields, like {Group ID}.
 Dear
 ---
-The email message goes here. There can be special fields, such as: <Last Name>
+The email message goes here. There can be special fields, such as: {Last Name}
     
 Is the following address correct?
 
-    <Institution>, <Department>
-    <Street Address>
-    <Street Address Line 2>
-    <City>, <State / Province>, <Postal / Zip Code>
-    <Country>
+    {Institution}, {Department}
+    {Street Address}
+    {Street Address Line 2}
+    {City}, {State / Province}, {Postal / Zip Code}
+    {Country}
 
-You can use any named field (column) in the associated ODS file, such as <Number> or <String> fields.
-You can re-use the same fields, like <Number> and <Group ID>.
+You can use any named field (column) in the associated ODS file, such as {Number} or {String} fields.
+You can re-use the same fields, like {Number} and {Group ID}.
+
+You can maybe use HTML tag to make things <b>bold</b> and <i>italic</i>.
+
+...and to add <a href="https://www.noblackboxes.org">links</a>
+
 ---
 Sincerely,
 Adam and Elena
-attachment_<Group ID>.jpg,attachment_<First Name>.pdf
+attachment_{Group ID}.jpg,attachment_{First Name}.pdf
 #FIN
