@@ -59,8 +59,6 @@ for group in list.groups:
         print('---')
         print(message.plain)
         print('--')
-        print(message.html)
-        print('--')
         print(message.attachments)
         print('---')
     else:

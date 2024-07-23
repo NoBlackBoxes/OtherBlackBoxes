@@ -17,11 +17,16 @@ You can re-use the same fields, like {Number} and {Group ID}.
 
 You can use Markdown (MD) tags to make things **bold** or ***italic***.
 
+## You can probably also add headers/sub-headers
+
+Like the above. Note, lists don't work.
+
 Links should be clickable in plain text: https://www.noblackboxes.org
 
 ...but you can also use MD links like [this](https://www.noblackboxes.org).
 
 Sincerely,
+
 Adam and Elena
 
 ---

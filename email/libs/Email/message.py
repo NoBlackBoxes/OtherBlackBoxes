@@ -38,7 +38,7 @@ class Message:
                 body.append(f"{line}")
         body.append("\n")
         self.plain = "".join(body)
-        self.html = markdown.markdown(self.plain)
+        self.html = "<html>\n<body>\n" + markdown.markdown(self.plain) + "\n</html>\n</body>\n"
         attachments = []
         for attachment in self.template.attachments:
             attachments.append(self.replace_fields(self.template.fields, attachment))
@@ -88,11 +88,11 @@ class Message:
         return salutation
     
     def send(self, sender, password):
-        email = MIMEMultipart()
+        email = MIMEMultipart("alternative")
         email['From'] = f"NoBlackBoxes <{sender}>"
         email['To'] = ", ".join(self.recipients)
         email['Subject'] = self.subject
-        #email.attach(MIMEText(self.plain, 'plain'))
+        email.attach(MIMEText(self.plain, 'plain'))
         email.attach(MIMEText(self.html, 'html'))
         # !! Atach Attachments !!
         smtp = smtplib.SMTP('smtp.protonmail.ch', 587)
