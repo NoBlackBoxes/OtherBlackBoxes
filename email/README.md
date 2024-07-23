@@ -2,67 +2,65 @@
 
 Instructions to generate and send automated emails
 
-## Requirements
+## Create a Virtual Environment
 
 ```bash
-pip install numpy pandas python-dotenv odfpy
+cd <OBB/email>
+mkdir _tmp
+cd _tmp
+python -m venv Email
+cd ..
+source _tmp/Email/bin/activate
+```
+
+## Install Requirements
+
+```bash
+pip install numpy pandas python-dotenv odfpy markdown
+```
+
+## Create an Environment (.env) File
+
+```txt
+LIBS_PATH="/home/kampff/NoBlackBoxes/OtherBlackBoxes/email/libs"
+BASE_PATH="/home/kampff/NoBlackBoxes/OtherBlackBoxes/email"
+PROTONMAIL_USERNAME='info@noblackboxes.org'
+PROTONMAIL_SMTP_TOKEN='??????'
 ```
 
 ## Recipient (Group) List
-Create an ODS file with the following format with columns with field names, must have "First Name" and "Email"
+Create an ODS file with the following format with columns with field names, should have "First Name" and must have "Email".
 
-## Sending
-- You will need a password manager installed
+## Template
+Create a Markdown-style template (template.md)
 
-```bash
-sudo pacman -S pass
+```txt
+## Subject: This can contain named fields, like {Group ID}.
+---
+Dear {First Name(s)},
 
-# Generate key for pass manager
-gpg --generate-key # do not enter a passphrase
-pass init '{your gpg key id}'
-```
-- Install the Proton Mail Bridge (binary is in AUR)
-- Run...login and sync
+The email message goes here. There can be special fields, such as: {Last Name}
+    
+Is the following address correct?
 
-```bash
-protonmail-bridge --cli
->>> login
-```
-- Note "bridge" password (needed in Python scripts)
+    {Institution}, {Department}
+    {Street Address}
+    {Street Address Line 2}
+    {City}, {State / Province}, {Postal / Zip Code}
+    {Country}
 
-```bash
->>> info
-```
+You can use any named field (column) in the associated ODS file, such as {Number} or {String} fields.
+You can re-use the same fields, like {Number} and {Group ID}.
 
-- Change smtp-security to use SSL
+You can use Markdown (MD) tags to make things **bold** or ***italic***.
 
-```bash
->>> change smtp-security
->>> exit
-```
+Links should be clickable in plain text: https://www.noblackboxes.org
 
-***Important***: Copy password 
+...but you can also use MD links like [this](https://www.noblackboxes.org).
 
-***Just this next step to run later...***
+Sincerely,
+Adam and Elena
 
-- Start proton mail bridge
-```bash
-nohup protonmail-bridge --noninteractive > bridge_log.txt 2>&1 &
-disown
-```
-
-- Send a test email
-
-```python
-import smtplib
-from email.mime.text import MIMEText
-sender = 'kampff@voight-kampff.tech'
-receiver = 'adam.kampff@gmail.com'
-message = MIMEText("Hello, world!")
-message['Subject'] = "Message subject!"
-message['From'] = sender
-message['To'] = receiver
-smtp = smtplib.SMTP_SSL('127.0.0.1', 1025) # 1025 - port from proton mail bridge
-smtp.login(sender, 'password') # email and password
-smtp.sendmail(sender, [receiver], message.as_string())
+---
+attachment_{Group ID}.jpg,attachment_{First Name}.pdf
 ```

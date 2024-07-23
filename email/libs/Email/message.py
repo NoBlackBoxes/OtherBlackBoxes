@@ -8,6 +8,7 @@ Email: Message Class
 # Import libraries
 import numpy as np
 import pandas as pd
+import markdown
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -22,7 +23,8 @@ class Message:
         self.num_recipents = len(group[1])
         self.recipients = []
         self.subject = None
-        self.body = None
+        self.plain = None
+        self.html = None
         self.attachments = []
         return
 
@@ -30,16 +32,13 @@ class Message:
         self.recipients = self.group[1]['Email'].values
         self.subject = self.replace_fields(self.template.fields, self.template.subject)
         body = []
-        salutation = self.generate_salutation(self.group)
-        body.append(f"{salutation}\n\n")
-        for line in self.template.text:
+        for line in self.template.body:
             line = self.replace_fields(self.template.fields, line)
             if line is not None:
                 body.append(f"{line}")
         body.append("\n")
-        body.append(self.template.close + "\n")
-        body.append(self.template.senders + "\n")
-        self.body = "".join(body)
+        self.plain = "".join(body)
+        self.html = markdown.markdown(self.plain)
         attachments = []
         for attachment in self.template.attachments:
             attachments.append(self.replace_fields(self.template.fields, attachment))
@@ -48,12 +47,29 @@ class Message:
 
     def replace_fields(self, fields, line):
         for field in fields:
-            value = self.group[1][field].values[0]
-            line = line.replace(f"{{{field}}}", str(value))
+            if (len(field) > 3) and (field[-3:] == '(s)'):
+                values = self.group[1][field[:-3]].values
+                plural = []
+                if self.num_recipents > 2:
+                    for name in values[:-1]:
+                        plural.append(f"{name}, ")
+                    plural.append(f"and {values[-1]}")
+                elif self.num_recipents == 2:
+                    plural.append(f"{values[0]} and {values[1]}")
+                else:
+                    plural.append(f"{values[0]}")
+                plural = "".join(plural)
+                line = line.replace(f"{{{field}}}", str(plural))
+            else:
+                value = self.group[1][field].values[0]
+                line = line.replace(f"{{{field}}}", str(value))
         # If line has "empty" field (nan) and whitespace, return None
         trimmed = line.strip()
         if trimmed == "nan":
             line = None
+        else:
+            # Remove any other "nans"
+            line = line.replace(f"nan", '')
         return line
 
     def generate_salutation(self, group):
@@ -76,7 +92,8 @@ class Message:
         email['From'] = f"NoBlackBoxes <{sender}>"
         email['To'] = ", ".join(self.recipients)
         email['Subject'] = self.subject
-        email.attach(MIMEText(self.body, 'plain'))
+        #email.attach(MIMEText(self.plain, 'plain'))
+        email.attach(MIMEText(self.html, 'html'))
         # !! Atach Attachments !!
         smtp = smtplib.SMTP('smtp.protonmail.ch', 587)
         smtp.ehlo()  # send the extended hello to our server

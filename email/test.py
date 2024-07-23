@@ -39,7 +39,7 @@ importlib.reload(Message)
 debug = True
 
 # Specify paths
-template_path = base_path + "/template.txt"
+template_path = base_path + "/template.md"
 list_path = base_path + "/list.ods"
 
 # Load template
@@ -56,7 +56,11 @@ for group in list.groups:
     if debug:
         print(message.recipients)
         print(message.subject)
-        print(message.body)
+        print('---')
+        print(message.plain)
+        print('--')
+        print(message.html)
+        print('--')
         print(message.attachments)
         print('---')
     else:
