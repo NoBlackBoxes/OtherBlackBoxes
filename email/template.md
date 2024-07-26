@@ -30,4 +30,4 @@ Sincerely,
 Adam and Elena
 
 ---
-attachment_{Group ID}.jpg,attachment_{First Name}.pdf
+attachment_{Group ID}.pdf,{Attachment}.png

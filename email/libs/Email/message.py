@@ -6,14 +6,12 @@ Email: Message Class
 """
 
 # Import libraries
+import os
 import numpy as np
 import pandas as pd
 import markdown
 import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
+from email.message import EmailMessage
 
 # Message Class
 class Message:
@@ -88,13 +86,23 @@ class Message:
         return salutation
     
     def send(self, sender, password):
-        email = MIMEMultipart("alternative")
+        email = EmailMessage()
         email['From'] = f"NoBlackBoxes <{sender}>"
         email['To'] = ", ".join(self.recipients)
         email['Subject'] = self.subject
-        email.attach(MIMEText(self.plain, 'plain'))
-        email.attach(MIMEText(self.html, 'html'))
-        # !! Atach Attachments !!
+        email.set_content(self.plain)
+        email.add_alternative(self.html, subtype="html")
+        if len(self.attachments) > 0:
+            for attachment in self.attachments:
+                attachment_suffix = attachment.split('.')[-1]
+                with open(attachment, "rb") as f:
+                    if attachment_suffix == 'pdf':
+                        email.add_attachment(f.read(), filename=attachment, maintype="application", subtype="pdf")
+                    elif attachment_suffix in ['jpg', 'jpeg', 'png']:
+                        email.add_attachment(f.read(), filename=attachment, maintype="image", subtype=attachment_suffix)
+                    else:
+                        print(f"Unsupported Attachment Type: {attachment_suffix}")
+                        exit(-1)
         smtp = smtplib.SMTP('smtp.protonmail.ch', 587)
         smtp.ehlo()  # send the extended hello to our server
         smtp.starttls()  # tell server we want to communicate with TLS encryption
