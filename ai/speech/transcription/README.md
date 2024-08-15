@@ -7,6 +7,6 @@ Transcribe audio file
 - Activate relevant virutal environment, then...
 
 ```bash
-pip install transformers
+pip install torch transformers
 ```
 

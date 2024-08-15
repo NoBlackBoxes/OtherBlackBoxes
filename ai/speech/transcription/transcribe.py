@@ -62,8 +62,8 @@ def find_silence(audio):
 # ----------
 
 # Load speech recognition processor and model
-processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
-model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-large-v2")
+processor = WhisperProcessor.from_pretrained("openai/whisper-large-v3")
+model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-large-v3")
 
 # Clear terminal
 os.system('cls' if os.name == 'nt' else 'clear')
@@ -99,7 +99,7 @@ while True:
     input_features = inputs.input_features
 
     # Generate IDs
-    generated_ids = model.generate(inputs=input_features, max_new_tokens=1024)
+    generated_ids = model.generate(inputs=input_features, max_new_tokens=444)
 
     # Transcribe
     transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
