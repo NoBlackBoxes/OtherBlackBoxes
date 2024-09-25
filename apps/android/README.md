@@ -50,5 +50,5 @@ keytool -genkeypair -keystore "$OBBROOT/_tmp/android/keystore.jks" -alias androi
 
 ```bash
 # From app folder
-adb install -r build/{"APP_NAME}.apk
+adb install -r build/${APP_NAME}.apk
 ```

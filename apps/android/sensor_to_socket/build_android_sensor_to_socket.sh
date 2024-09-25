@@ -8,9 +8,10 @@ OBBROOT="/home/kampff/NoBlackBoxes/OtherBlackBoxes"
 OBBTMP=$OBBROOT"/_tmp"
 
 # Export App name
-APP_NAME="hello_java"
+APP_NAME="sensor_to_socket"
 
 # Export environment variables
+JAVA_HOME="/usr/lib/jvm/java-17-openjdk/lib"
 ANDROID_BUILD_TOOLS="${OBBTMP}/android/build-tools/34.0.0"
 ANDROID_PLATFORM="${OBBTMP}/android/platforms/android-34"
 ANDROID_NDK="${OBBTMP}/android/ndk-bundle"
@@ -27,12 +28,12 @@ echo "R.java generated"
 
 # Compile Java
 javac -source 17 -target 17 \
-    -classpath "${ANDROID_PLATFORM}/android.jar" -d build/obj \
+    -classpath "${ANDROID_PLATFORM}/android.jar:${JAVA_HOME}/lib" -d build/obj \
     build/gen/vk/nbb/${APP_NAME}/R.java java/vk/nbb/${APP_NAME}/MainActivity.java
 echo "Java compiled"
 
 # Convert to Dalvik
-${ANDROID_BUILD_TOOLS}/d8 --no-desugaring --output build/apk build/obj/vk/nbb/${APP_NAME}/*.class
+${ANDROID_BUILD_TOOLS}/d8 --lib "${ANDROID_PLATFORM}/android.jar" --output build/apk build/obj/vk/nbb/${APP_NAME}/*.class
 echo "Converted to Dalvik"
 
 # Package into APK
