@@ -17,8 +17,8 @@ importlib.reload(model)
 username = os.getlogin()
 
 # Specify paths
-repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/speech/keyword'
+repo_path = '/home/' + username + '/NoBlackBoxes/OtherBlackBoxes'
+box_path = repo_path + '/ai/speech/keyword'
 output_path = box_path + '/_tmp'
 dataset_folder = box_path + '/_tmp/dataset'
 

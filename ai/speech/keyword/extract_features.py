@@ -5,7 +5,7 @@ from python_speech_features import mfcc
 from python_speech_features import logfbank
 
 # Set paths
-root = '/home/kampff/NoBlackBoxes/repos/OtherBlackBoxes/boxes/ai/speech/keyword'
+root = '/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/speech/keyword'
 
 # Set parameters
 num_mfcc = 16
@@ -34,8 +34,6 @@ mfccs = mfcc(sound,
             ceplifter=0,
             appendEnergy=False,
             winfunc=np.hanning)
-
-
-
+print(mfccs.shape)
 
 #FIN

@@ -62,7 +62,7 @@ class custom(torch.utils.data.Dataset):
         # Add channel dimesnion
         mfccs = np.expand_dims(mfccs, 0)
 
-        # Convert to FLoat32
+        # Convert to Float32
         mfccs = np.float32(mfccs)
         target = np.float32(target)
 

@@ -2,9 +2,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-import pyaudio
 from python_speech_features import mfcc
-import sound
+import NB3.Sound.microphone as Microphone
+import NB3.Sound.utilities as Utilities
 
 # Locals libs
 import model
@@ -12,7 +12,6 @@ import model
 # Reimport
 import importlib
 importlib.reload(model)
-importlib.reload(sound)
 
 # Get user name
 username = os.getlogin()
@@ -37,12 +36,12 @@ print(f"Using {device} device")
 # Move model to device
 custom_model.to(device)
 
-
 # List sound devices
-#sound.list_devices()
+Utilities.list_devices()
 
 # Initiliaze microphone thread
-microphone = sound.microphone(4, 1600, pyaudio.paInt16, 16000, 10)
+microphone = Microphone.Microphone(input_device, num_channels, 'int32', sample_rate, buffer_size, max_samples)
+microphone.gain = 10.0
 microphone.start()
 
 # Infer
