@@ -23,11 +23,11 @@ output_path = box_path + '/_tmp'
 dataset_folder = box_path + '/_tmp/dataset'
 
 # Prepare datasets
-train_data, test_data = dataset.prepare(dataset_folder, 0.8)
+train_data, test_data, noise_data = dataset.prepare(dataset_folder, 0.8)
 
 # Create datasets
-train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], augment=False)
-test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], augment=False)
+train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], noise=noise_data, augment=False)
+test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], noise=noise_data, augment=False)
 
 # Create data loaders
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=512, shuffle=True)
@@ -65,7 +65,7 @@ print(f"Using {device} device")
 
 # Move model to device
 custom_model.to(device)
-summary(custom_model, (1, 16, 16))
+summary(custom_model, (1, dataset.num_mfcc, dataset.len_mfcc))
 
 # Define accuracy
 def measure_accuracy(targets, guesses):
@@ -76,26 +76,21 @@ def measure_accuracy(targets, guesses):
 
     # Measure accuracy
     num_guesses = guesses.shape[0]
-    true_positives = 0
-    true_negatives = 0
-    false_positives = 0
-    false_negatives = 0
+    correct = 0
+    wrong = 0
+    noise = 0
     for i in range(num_guesses):
         target = targets[i]
         guess = guesses[i]
-        expected = target
-        predicted = guess[0]
-        if (expected == 1.0):
-            if (predicted > 0.5):
-                true_positives = true_positives + 1
-            else:
-                false_negatives = false_negatives + 1
+        expected = np.argmax(target)
+        predicted = np.argmax(guess)
+        if expected == 0:
+            noise += 1
+        if (expected == predicted):
+            correct += 1
         else:
-            if (predicted > 0.5):
-                false_positives = false_positives + 1
-            else:
-                true_negatives = true_negatives + 1
-    return (true_positives, true_negatives, false_positives, false_negatives)
+            wrong += 1
+    return correct, wrong, noise
 
 # Define training
 def train(_dataloader, _model, _loss_function, _optimizer):
@@ -115,9 +110,8 @@ def train(_dataloader, _model, _loss_function, _optimizer):
 
         if batch % 2 == 0:
             loss, current = loss.item(), batch * len(X)
-            results = measure_accuracy(y, pred)
-            print(results)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            correct, wrong, noise = measure_accuracy(y, pred)
+            print(f"{correct} vs {wrong} : #{noise}, loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 # Define testing
 def test(_dataloader, _model, _loss_function):
@@ -125,17 +119,18 @@ def test(_dataloader, _model, _loss_function):
     num_batches = len(_dataloader)
     _model.eval()
     test_loss = 0.0
-    accum_results = (0,0,0,0)
+    accum_correct = 0
+    accum_wrong = 0
     with torch.no_grad():
         for X, y in _dataloader:
             X, y = X.to(device), y.to(device)
             pred = _model(X)
             test_loss += _loss_function(pred, y).item()
-            results = measure_accuracy(y, pred)
-            accum_results = accum_results + results
+            correct, wrong, noise = measure_accuracy(y, pred)
+            accum_correct = accum_correct + correct
+            accum_wrong = accum_wrong + wrong
     avg_test_loss = test_loss / num_batches
-    print(results)
-    print(f"Test Results: \n Avg loss: {avg_test_loss:>8f}\n")
+    print(f"Test Results: {accum_correct} vs {accum_wrong}\n Avg loss: {avg_test_loss:>8f}\n")
 
 # TRAIN
 epochs = 10

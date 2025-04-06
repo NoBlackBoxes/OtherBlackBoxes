@@ -2,20 +2,23 @@ import os
 import numpy as np
 import torch
 import wave
+import random
 from python_speech_features import mfcc
 
 # Set parameters
-num_mfcc = 16
-len_mfcc = 16
+num_mfcc = 32
+len_mfcc = 32
 
-# Word to detect
-detection_word = 'marvin'
+# Specify words
+detection_words = ["noise", "yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+distraction_words = ["bed", "bird", "cat", "dog", "happy", "house", "marvin", "sheila", "tree", "wow"]
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
-    def __init__(self, wav_paths, targets, transform=None, target_transform=None, augment=False):
+    def __init__(self, wav_paths, targets, noise, transform=None, target_transform=None, augment=False):
         self.wav_paths = wav_paths
         self.targets = targets
+        self.noise = noise
         self.transform = transform
         self.target_transform = target_transform
         self.augment = augment
@@ -25,29 +28,39 @@ class custom(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         wav_path = self.wav_paths[idx]
-        target = [self.targets[idx]]
+        target = self.targets[idx]
 
         # Load WAV
-        wav_obj = wave.open(wav_path)
-        fs = wav_obj.getframerate()
-        num_frames = wav_obj.getnframes()
-        byte_data = wav_obj.readframes(num_frames)
-        sound = np.frombuffer(byte_data, dtype=np.int16)
-        wav_obj.close()
+        if target[0] == 1.0: # This is a "noise" example
+            start_frame = random.randint(0, len(self.noise)-16000)
+            sound = self.noise[start_frame:(start_frame+16000)]
+        else:
+            sound = load_wav(wav_path)
 
         # Compute MFCCs
         buffer = np.zeros((len_mfcc, num_mfcc), dtype=np.float32)
         mfccs = mfcc(sound, 
-                    samplerate=fs,
+                    samplerate=16000,
                     winlen=0.100,
-                    winstep=0.064,
+                    winstep=0.0295,
                     numcep=num_mfcc,
-                    nfilt=num_mfcc,
+                    nfilt=48,
                     nfft=4096,
                     preemph=0.0,
                     ceplifter=0,
                     appendEnergy=False,
                     winfunc=np.hanning)
+        #mfccs = mfcc(sound, 
+        #            samplerate=16000,
+        #            winlen=0.100,
+        #            winstep=0.064,
+        #            numcep=num_mfcc,
+        #            nfilt=num_mfcc,
+        #            nfft=4096,
+        #            preemph=0.0,
+        #            ceplifter=0,
+        #            appendEnergy=False,
+        #            winfunc=np.hanning)
 
         # Fill buffer
         buffer[:mfccs.shape[0], :num_mfcc] = mfccs
@@ -59,7 +72,7 @@ class custom(torch.utils.data.Dataset):
         if self.augment:
             mfccs = augment(mfccs)
         
-        # Add channel dimesnion
+        # Add channel dimension
         mfccs = np.expand_dims(mfccs, 0)
 
         # Convert to Float32
@@ -67,6 +80,15 @@ class custom(torch.utils.data.Dataset):
         target = np.float32(target)
 
         return mfccs, target
+
+# Load WAV
+def load_wav(path):
+        wav_obj = wave.open(path)
+        num_frames = wav_obj.getnframes()
+        byte_data = wav_obj.readframes(num_frames)
+        sound = np.frombuffer(byte_data, dtype=np.int16)
+        wav_obj.close()
+        return sound
 
 # Load dataset
 def prepare(dataset_folder, split):
@@ -88,19 +110,33 @@ def prepare(dataset_folder, split):
             full_paths.append(f + '/' + path)
         num_paths = len(full_paths)
         wav_paths.extend(full_paths)
-        targets.extend([os. path. basename(f)] * num_paths) # replicate this target label and append
+        targets.extend([os.path.basename(f)] * num_paths) # replicate this target label and append
+
+    # Load all Noise files
+    noise_arrays = []
+    for f in os.listdir(f"{dataset_folder}/_background_noise_"):
+        if f.endswith("wav"):
+            noise_path = f"{dataset_folder}/_background_noise_/{f}"
+            sound = load_wav(noise_path)
+            noise_arrays.append(sound)
+    noise_data = np.concatenate(noise_arrays)
+
+    # Include placeholders for "Noise"
+    num_random = len(wav_paths)
+    for i in range(num_random):
+        wav_paths.append("noise")
+        targets.append("noise")
 
     # Determine target
-    target_array = []
+    target_lists = []
     for t in targets:
-        if t == detection_word:
-            target_array.append(1.0)
-        else:
-            target_array.append(0.0)
+        target_word = t if t in detection_words else "noise"
+        target_list = [1.0 if word == target_word else 0.0 for word in detection_words]
+        target_lists.append(target_list)
 
     # Convert to arrays
     wav_paths = np.array(wav_paths)
-    target_array = np.array(target_array)
+    target_array = np.array(target_lists)
 
     # Split train/test
     num_samples = len(targets)
@@ -115,13 +151,12 @@ def prepare(dataset_folder, split):
     train_data = (wav_paths[train_indices], target_array[train_indices])
     test_data = (wav_paths[test_indices], target_array[test_indices])
 
-    return train_data, test_data
+    return train_data, test_data, noise_data
 
 # Augment
 def augment(mfccs):
 
     # Augment MFCCs
-    
     return mfccs
 
 #FIN

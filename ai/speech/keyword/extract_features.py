@@ -8,8 +8,8 @@ from python_speech_features import logfbank
 root = '/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/speech/keyword'
 
 # Set parameters
-num_mfcc = 16
-len_mfcc = 16
+num_mfcc = 32
+len_mfcc = 32
 
 # Load example sound
 wav_path = root + '/_tmp/dataset/yes/0a7c2a8d_nohash_0.wav'
@@ -25,10 +25,10 @@ wav_obj.close()
 # Compute MFCCs
 mfccs = mfcc(sound, 
             samplerate=fs,
-            winlen=0.256,
-            winstep=0.050,
+            winlen=0.100,
+            winstep=0.0295,
             numcep=num_mfcc,
-            nfilt=26,
+            nfilt=48,
             nfft=4096,
             preemph=0.0,
             ceplifter=0,

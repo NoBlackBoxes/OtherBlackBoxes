@@ -15,10 +15,11 @@ class custom(torch.nn.Module):
         self.relu2 = torch.nn.ReLU(inplace=True)
         self.maxpool = torch.nn.MaxPool2d(2,2)
         self.flatten = torch.nn.Flatten()
-        self.linear1 = torch.nn.Linear(2304,64)
+        self.linear1 = torch.nn.Linear(12544,128)
         self.dropout = torch.nn.Dropout(0.25)
         self.relu3 = torch.nn.ReLU(inplace=True)
-        self.linear2 = torch.nn.Linear(64, 1)
+        self.linear2 = torch.nn.Linear(128, 64)
+        self.linear3 = torch.nn.Linear(64, 21)
         self.sigmoid = torch.nn.Sigmoid()
     
     # Forward
@@ -34,6 +35,7 @@ class custom(torch.nn.Module):
         x = self.dropout(x)
         x = self.relu3(x)
         x = self.linear2(x)
+        x = self.linear3(x)
         x = self.sigmoid(x)
         return x
 
