@@ -10,7 +10,6 @@ root = '/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/speech/keyword'
 
 # Set parameters
 num_mfcc = 32
-len_mfcc = 32
 
 # Load example sound
 wav_path = root + '/_tmp/dataset/five/0a2b400e_nohash_0.wav'
@@ -26,18 +25,17 @@ wav_obj.close()
 # Compute MFCCs
 plt.plot(sound)
 plt.show()
-
 mfccs = mfcc(sound, 
             samplerate=fs,
-            winlen=0.100,
-            winstep=0.0295,
+            winlen=0.025,
+            winstep=0.010,
             numcep=num_mfcc,
-            nfilt=48,
-            nfft=4096,
-            preemph=0.0,
-            ceplifter=0,
-            appendEnergy=False,
-            winfunc=np.hanning)
+            nfilt=40,
+            nfft=512,
+            lowfreq=300,
+            highfreq=8000,
+            appendEnergy=True,
+            winfunc=np.hamming)
 mfccs = mfccs.transpose()
 print(mfccs.shape)
 plt.imshow(mfccs)

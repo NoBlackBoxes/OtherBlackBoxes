@@ -26,8 +26,8 @@ dataset_folder = box_path + '/_tmp/dataset'
 train_data, test_data, noise_data = dataset.prepare(dataset_folder, 0.8)
 
 # Create datasets
-train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], noise=noise_data, augment=False)
-test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], noise=noise_data, augment=False)
+train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], noise=noise_data, augment=True)
+test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], noise=noise_data, augment=True)
 
 # Create data loaders
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=512, shuffle=True)
@@ -65,7 +65,7 @@ print(f"Using {device} device")
 
 # Move model to device
 custom_model.to(device)
-summary(custom_model, (1, dataset.num_mfcc, dataset.len_mfcc))
+summary(custom_model, (1, dataset.num_mfcc, dataset.num_times))
 
 # Define accuracy
 def measure_accuracy(targets, guesses):

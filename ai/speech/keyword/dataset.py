@@ -7,11 +7,13 @@ from python_speech_features import mfcc
 
 # Set parameters
 num_mfcc = 32
-len_mfcc = 32
+num_times = 99
 
 # Specify words
-detection_words = ["noise", "yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+non_word = ["noise"]
+command_words = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 distraction_words = ["bed", "bird", "cat", "dog", "happy", "house", "marvin", "sheila", "tree", "wow"]
+detection_words = non_word + command_words + distraction_words
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
@@ -30,47 +32,40 @@ class custom(torch.utils.data.Dataset):
         wav_path = self.wav_paths[idx]
         target = self.targets[idx]
 
-        # Load WAV
+        # Load WAV        
         if target[0] == 1.0: # This is a "noise" example
             start_frame = random.randint(0, len(self.noise)-16000)
             sound = self.noise[start_frame:(start_frame+16000)]
         else:
             sound = load_wav(wav_path)
+            if len(sound) < 16000:
+                buffer = np.zeros(16000-len(sound))
+                sound = np.concatenate([sound, buffer])
+            # Augment?
+            if self.augment:
+                start_frame = random.randint(0, len(self.noise)-16000)
+                noise = self.noise[start_frame:(start_frame+16000)]
+                sound = sound + (0.5 * noise)
 
         # Compute MFCCs
-        buffer = np.zeros((len_mfcc, num_mfcc), dtype=np.float32)
+        buffer = np.zeros((num_times, num_mfcc), dtype=np.float32)
         mfccs = mfcc(sound, 
                     samplerate=16000,
-                    winlen=0.100,
-                    winstep=0.0295,
+                    winlen=0.025,
+                    winstep=0.010,
                     numcep=num_mfcc,
-                    nfilt=48,
-                    nfft=4096,
-                    preemph=0.0,
-                    ceplifter=0,
-                    appendEnergy=False,
-                    winfunc=np.hanning)
-        #mfccs = mfcc(sound, 
-        #            samplerate=16000,
-        #            winlen=0.100,
-        #            winstep=0.064,
-        #            numcep=num_mfcc,
-        #            nfilt=num_mfcc,
-        #            nfft=4096,
-        #            preemph=0.0,
-        #            ceplifter=0,
-        #            appendEnergy=False,
-        #            winfunc=np.hanning)
+                    nfilt=40,
+                    nfft=512,
+                    lowfreq=300,
+                    highfreq=8000,
+                    appendEnergy=True,
+                    winfunc=np.hamming)
 
         # Fill buffer
         buffer[:mfccs.shape[0], :num_mfcc] = mfccs
 
         # Transpose MFCCs (rows = Fr, cols = time)
         mfccs = buffer.transpose()
-
-        # Augment?
-        if self.augment:
-            mfccs = augment(mfccs)
         
         # Add channel dimension
         mfccs = np.expand_dims(mfccs, 0)
@@ -88,7 +83,8 @@ def load_wav(path):
         byte_data = wav_obj.readframes(num_frames)
         sound = np.frombuffer(byte_data, dtype=np.int16)
         wav_obj.close()
-        return sound
+        sound_f = sound.astype(np.float32) / 32768.0
+        return sound_f
 
 # Load dataset
 def prepare(dataset_folder, split):
@@ -152,11 +148,5 @@ def prepare(dataset_folder, split):
     test_data = (wav_paths[test_indices], target_array[test_indices])
 
     return train_data, test_data, noise_data
-
-# Augment
-def augment(mfccs):
-
-    # Augment MFCCs
-    return mfccs
 
 #FIN
