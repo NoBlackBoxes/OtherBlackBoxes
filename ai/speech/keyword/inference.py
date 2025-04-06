@@ -7,23 +7,25 @@ import NB3.Sound.microphone as Microphone
 import NB3.Sound.utilities as Utilities
 
 # Locals libs
+import dataset
 import model
 
 # Reimport
 import importlib
+importlib.reload(dataset)
 importlib.reload(model)
 
 # Get user name
 username = os.getlogin()
 
 # Specify paths
-repo_path = '/home/' + username + '/NoBlackBoxes/repos/OtherBlackBoxes'
-box_path = repo_path + '/boxes/ai/speech/keyword'
-model_path = box_path + '/_tmp/sheila.pt'
+repo_path = '/home/' + username + '/NoBlackBoxes/OtherBlackBoxes'
+box_path = repo_path + '/ai/speech/keyword'
+model_path = box_path + '/_tmp/custom.pt'
 
 # Set parameters
-num_mfcc = 16
-len_mfcc = 16
+num_mfcc = 32
+len_mfcc = 32
 
 # Load model
 custom_model = model.custom()
@@ -40,30 +42,42 @@ custom_model.to(device)
 Utilities.list_devices()
 
 # Initiliaze microphone thread
-microphone = Microphone.Microphone(input_device, num_channels, 'int32', sample_rate, buffer_size, max_samples)
-microphone.gain = 10.0
+microphone = Microphone.Microphone(3, 1, 'int32', 48000, 4800, 48000*10)
+microphone.gain = 1.0
 microphone.start()
 
 # Infer
 try:
     while True:
-        buffer = microphone.read_latest(16000)
+        buffer = microphone.latest(48000)
+        if len(buffer) != 48000:
+            continue
+        binned = buffer.reshape(-1, 3).mean(axis=1)*32000
+        #plt.plot(binned)
+        #plt.show()
 
         # Compute MFCCs
-        mfccs = mfcc(buffer, 
+        buffer = np.zeros((len_mfcc, num_mfcc), dtype=np.float32)
+        mfccs = mfcc(binned, 
                     samplerate=16000,
                     winlen=0.100,
-                    winstep=0.064,
+                    winstep=0.0295,
                     numcep=num_mfcc,
-                    nfilt=num_mfcc,
+                    nfilt=48,
                     nfft=4096,
                     preemph=0.0,
                     ceplifter=0,
                     appendEnergy=False,
                     winfunc=np.hanning)
+        buffer[:mfccs.shape[0], :num_mfcc] = mfccs
+
+        # Transpose MFCCs (rows = Fr, cols = time)
+        mfccs = mfccs.transpose()
+        #plt.imshow(mfccs)
+        #plt.show()
 
         # Prepare network input
-        input = torch.tensor(np.float32(mfccs.transpose()))
+        input = torch.tensor(np.float32(mfccs))
         input = torch.unsqueeze(torch.unsqueeze(input, 0), 0)
 
         # Send to GPU
@@ -77,7 +91,9 @@ try:
         output = np.squeeze(output)
 
         # Report
-        print(output > 0.75)
+        score = np.max(output)
+        if score > 0.75:
+            print(f"{dataset.detection_words[np.argmax(output)]} : {score}")
 
 finally:
     # Shutdown
