@@ -26,8 +26,8 @@ dataset_folder = box_path + '/_tmp/dataset'
 train_data, test_data, noise_data = dataset.prepare(dataset_folder, 0.8)
 
 # Create datasets
-train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], noise=noise_data, augment=True)
-test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], noise=noise_data, augment=True)
+train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], noise=noise_data, augment=False)
+test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], noise=noise_data, augment=False)
 
 # Create data loaders
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=512, shuffle=True)
@@ -133,7 +133,7 @@ def test(_dataloader, _model, _loss_function):
     print(f"Test Results: {accum_correct} vs {accum_wrong}\n Avg loss: {avg_test_loss:>8f}\n")
 
 # TRAIN
-epochs = 10
+epochs = 25
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader, custom_model, loss_fn, optimizer)

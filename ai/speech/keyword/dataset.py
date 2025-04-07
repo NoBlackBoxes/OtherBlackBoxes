@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import wave
 import random
+import matplotlib.pyplot as plt
 from python_speech_features import mfcc
 
 # Set parameters
@@ -43,9 +44,17 @@ class custom(torch.utils.data.Dataset):
                 sound = np.concatenate([sound, buffer])
             # Augment?
             if self.augment:
+                #'plt.subplot(1,3,1)
+                #'plt.plot(sound)
                 start_frame = random.randint(0, len(self.noise)-16000)
                 noise = self.noise[start_frame:(start_frame+16000)]
                 sound = sound + (0.5 * noise)
+                #plt.subplot(1,3,2)
+                #plt.plot(noise)
+                #plt.subplot(1,3,3)
+                #plt.plot(sound)
+                #plt.savefig("test.png")
+                #plt.close()
 
         # Compute MFCCs
         buffer = np.zeros((num_times, num_mfcc), dtype=np.float32)
