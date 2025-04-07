@@ -133,15 +133,18 @@ def test(_dataloader, _model, _loss_function):
     print(f"Test Results: {accum_correct} vs {accum_wrong}\n Avg loss: {avg_test_loss:>8f}\n")
 
 # TRAIN
-epochs = 1
+epochs = 100
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader, custom_model, loss_fn, optimizer)
     test(test_dataloader, custom_model, loss_fn)
+
+    # Save interim model
+    torch.save(custom_model.state_dict(), output_path + '/custom.pt')
 print("Done!")
 
 # Save model
-torch.save(custom_model.state_dict(), output_path + '/custom.pt')
+torch.save(custom_model.state_dict(), output_path + '/final.pt')
 
 # Reload saved model
 #model_path = model_path = box_path + '/_tmp/custom.pt'
