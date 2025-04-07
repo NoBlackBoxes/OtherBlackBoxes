@@ -53,6 +53,7 @@ print(f"Using {device} device")
 
 # Move model to device
 custom_model.to(device)
+custom_model.eval()        # Put model in eval mode
 
 # Prepare network input
 input = torch.tensor(np.float32(mfccs))

@@ -33,6 +33,7 @@ print(f"Using {device} device")
 
 # Move model to device
 custom_model.to(device)
+custom_model.eval()        # Put model in eval mode
 
 # List sound devices
 Utilities.list_devices()
