@@ -56,7 +56,7 @@ custom_model = model.custom()
 
 
 # Set optimizer
-optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.001, betas=(0.9, 0.999), weight_decay=0.1)
+optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.001, betas=(0.9, 0.999), weight_decay=0.01)
 
 # Get cpu or gpu device for training
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
@@ -68,7 +68,8 @@ pos_weights = (total_samples - target_distribution) / target_distribution
 #pos_weights = np.log1p(pos_weights)
 pos_weights_tensor = torch.tensor(pos_weights, dtype=torch.float32).to(device)
 #loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weights_tensor)
-loss_fn = torch.nn.BCELoss()
+#loss_fn = torch.nn.BCELoss()
+loss_fn = torch.nn.CrossEntropyLoss()
 
 # Move model to device
 custom_model.to(device)

@@ -48,7 +48,8 @@ class custom(torch.utils.data.Dataset):
                 #'plt.plot(sound)
                 start_frame = random.randint(0, len(self.noise)-16000)
                 noise = self.noise[start_frame:(start_frame+16000)]
-                sound = sound + (0.5 * noise)
+                noise_multiplier = random.uniform(0.0, 0.5)
+                sound = sound + (noise_multiplier * noise)
                 #plt.subplot(1,3,2)
                 #plt.plot(noise)
                 #plt.subplot(1,3,3)
