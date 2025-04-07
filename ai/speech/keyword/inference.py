@@ -83,15 +83,18 @@ try:
         # Inference
         output = custom_model(input)
 
+        # Convert logits to probabilities
+        probs = torch.nn.functional.softmax(output, dim=1)
+
         # Extract output
-        output = output.cpu().detach().numpy()
+        output = probs.cpu().detach().numpy()
         output = np.squeeze(output)
 
-        # Report
-        score = np.max(output)
-        #print(output)
-        if score > 0.5:
-            print(f"{dataset.detection_words[np.argmax(output)]} : {score}")
+        # Report top class if confident
+        predicted_idx = np.argmax(output)
+        score = output[predicted_idx]
+        if score > 0.75 and predicted_idx != 0:
+            print(f"DETECTED: {dataset.detection_words[predicted_idx]} : {score:.3f}")
 
 finally:
     # Shutdown
