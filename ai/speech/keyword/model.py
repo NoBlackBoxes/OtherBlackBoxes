@@ -27,7 +27,7 @@ class custom(torch.nn.Module):
         self.relu3 = torch.nn.ReLU(inplace=True)
         self.linear2 = torch.nn.Linear(64, 128)
         self.linear3 = torch.nn.Linear(128, 31)
-        self.sigmoid = torch.nn.Softmax(dim=0)
+        self.softmax = torch.nn.Softmax(dim=1)
     
     # Forward
     def forward(self, x):
@@ -50,7 +50,7 @@ class custom(torch.nn.Module):
         x = self.relu3(x)
         x = self.linear2(x)
         x = self.linear3(x)
-        x = self.sigmoid(x)
+        x = self.softmax(x)
         return x
 
 #FIN
