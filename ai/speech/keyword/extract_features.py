@@ -1,44 +1,76 @@
 # Extract MEL features from audio snippet
+import os
 import numpy as np
 import wave
+import torch
 from python_speech_features import mfcc
 from python_speech_features import logfbank
 import matplotlib.pyplot as plt
 
-# Set paths
-root = '/home/kampff/NoBlackBoxes/OtherBlackBoxes/ai/speech/keyword'
+# Locals libs
+import dataset
+import model
 
-# Set parameters
-num_mfcc = 32
+# Get user name
+username = os.getlogin()
+
+# Specify paths
+repo_path = '/home/' + username + '/NoBlackBoxes/OtherBlackBoxes'
+box_path = repo_path + '/ai/speech/keyword'
+model_path = box_path + '/_tmp/custom.pt'
 
 # Load example sound
-wav_path = root + '/_tmp/dataset/five/0a2b400e_nohash_0.wav'
-wav_obj = wave.open(wav_path)
-num_channels = wav_obj.getnchannels()
-sample_width = wav_obj.getsampwidth()
-fs = wav_obj.getframerate()
-num_frames = wav_obj.getnframes()
-byte_data = wav_obj.readframes(num_frames)
-sound = np.frombuffer(byte_data, dtype=np.int16)
-wav_obj.close()
+wav_path = box_path + '/_tmp/dataset/five/0a2b400e_nohash_0.wav'
+sound = dataset.load_wav(wav_path)
+#plt.plot(sound)
+#plt.show()
 
 # Compute MFCCs
-plt.plot(sound)
-plt.show()
+buffer = np.zeros((dataset.num_times, dataset.num_mfcc), dtype=np.float32)
 mfccs = mfcc(sound, 
-            samplerate=fs,
+            samplerate=16000,
             winlen=0.025,
             winstep=0.010,
-            numcep=num_mfcc,
+            numcep=dataset.num_mfcc,
             nfilt=40,
             nfft=512,
             lowfreq=300,
             highfreq=8000,
             appendEnergy=True,
             winfunc=np.hamming)
-mfccs = mfccs.transpose()
-print(mfccs.shape)
-plt.imshow(mfccs)
-plt.show()
+buffer[:mfccs.shape[0], :dataset.num_mfcc] = mfccs
+mfccs = buffer.transpose()
+#plt.imshow(mfccs)
+#plt.show()
+
+# Load model
+custom_model = model.custom()
+custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+
+# Get cpu or gpu device for training.
+device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+print(f"Using {device} device")
+
+# Move model to device
+custom_model.to(device)
+
+# Prepare network input
+input = torch.tensor(np.float32(mfccs))
+input = torch.unsqueeze(torch.unsqueeze(input, 0), 0)
+
+# Send to GPU
+input = input.to(device)
+
+# Inference
+output = custom_model(input)
+
+# Extract output
+output = output.cpu().detach().numpy()
+output = np.squeeze(output)
+
+# Report
+score = np.max(output)
+print(output)
+print(f"{dataset.detection_words[np.argmax(output)]} : {score}")
 
 #FIN

@@ -23,10 +23,6 @@ repo_path = '/home/' + username + '/NoBlackBoxes/OtherBlackBoxes'
 box_path = repo_path + '/ai/speech/keyword'
 model_path = box_path + '/_tmp/custom.pt'
 
-# Set parameters
-num_mfcc = 32
-len_mfcc = 32
-
 # Load model
 custom_model = model.custom()
 custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
@@ -52,27 +48,27 @@ try:
         buffer = microphone.latest(48000)
         if len(buffer) != 48000:
             continue
-        binned = buffer.reshape(-1, 3).mean(axis=1)*32000
+        binned = buffer.reshape(-1, 3).mean(axis=1)
         #plt.plot(binned)
         #plt.show()
 
         # Compute MFCCs
-        buffer = np.zeros((len_mfcc, num_mfcc), dtype=np.float32)
+        buffer = np.zeros((dataset.num_times, dataset.num_mfcc), dtype=np.float32)
         mfccs = mfcc(binned, 
                     samplerate=16000,
-                    winlen=0.100,
-                    winstep=0.0295,
-                    numcep=num_mfcc,
-                    nfilt=48,
-                    nfft=4096,
-                    preemph=0.0,
-                    ceplifter=0,
-                    appendEnergy=False,
-                    winfunc=np.hanning)
-        buffer[:mfccs.shape[0], :num_mfcc] = mfccs
+                    winlen=0.025,
+                    winstep=0.010,
+                    numcep=dataset.num_mfcc,
+                    nfilt=40,
+                    nfft=512,
+                    lowfreq=300,
+                    highfreq=8000,
+                    appendEnergy=True,
+                    winfunc=np.hamming)
+        buffer[:mfccs.shape[0], :dataset.num_mfcc] = mfccs
 
         # Transpose MFCCs (rows = Fr, cols = time)
-        mfccs = mfccs.transpose()
+        mfccs = buffer.transpose()
         #plt.imshow(mfccs)
         #plt.show()
 
@@ -92,7 +88,8 @@ try:
 
         # Report
         score = np.max(output)
-        if score > 0.75:
+        #print(output)
+        if score > 0.5:
             print(f"{dataset.detection_words[np.argmax(output)]} : {score}")
 
 finally:
