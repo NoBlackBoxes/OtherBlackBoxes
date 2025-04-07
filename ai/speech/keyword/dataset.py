@@ -34,7 +34,7 @@ class custom(torch.utils.data.Dataset):
         target = self.targets[idx]
 
         # Load WAV        
-        if target[0] == 1.0: # This is a "noise" example
+        if target == 0: # This is a "noise" example
             start_frame = random.randint(0, len(self.noise)-16000)
             sound = self.noise[start_frame:(start_frame+16000)]
         else:
@@ -82,7 +82,7 @@ class custom(torch.utils.data.Dataset):
 
         # Convert to Float32
         mfccs = np.float32(mfccs)
-        target = np.float32(target)
+        target = np.long(target)
 
         return mfccs, target
 
@@ -133,16 +133,15 @@ def prepare(dataset_folder, split):
         wav_paths.append("noise")
         targets.append("noise")
 
-    # Determine target
-    target_lists = []
+    # Determine targets
+    target_list = []
     for t in targets:
-        target_word = t if t in detection_words else "noise"
-        target_list = [1.0 if word == target_word else 0.0 for word in detection_words]
-        target_lists.append(target_list)
+        target_index = detection_words.index(t)
+        target_list.append(target_index)
 
     # Convert to arrays
     wav_paths = np.array(wav_paths)
-    target_array = np.array(target_lists)
+    target_array = np.array(target_list)
 
     # Split train/test
     num_samples = len(targets)

@@ -77,27 +77,10 @@ summary(custom_model, (1, dataset.num_mfcc, dataset.num_times))
 
 # Define accuracy
 def measure_accuracy(targets, guesses):
-
-    # Detach
-    targets = targets.cpu().detach().numpy()
-    guesses = guesses.cpu().detach().numpy()
-
-    # Measure accuracy
-    num_guesses = guesses.shape[0]
-    correct = 0
-    wrong = 0
-    noise = 0
-    for i in range(num_guesses):
-        target = targets[i]
-        guess = guesses[i]
-        expected = np.argmax(target)
-        predicted = np.argmax(guess)
-        if expected == 0:
-            noise += 1
-        if (expected == predicted):
-            correct += 1
-        else:
-            wrong += 1
+    preds = guesses.argmax(dim=1)
+    correct = (preds == targets).sum().item()
+    wrong = targets.size(0) - correct
+    noise = (targets == 0).sum().item()
     return correct, wrong, noise
 
 # Define training
