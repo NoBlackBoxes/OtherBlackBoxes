@@ -26,7 +26,7 @@ class custom(torch.nn.Module):
         self.dropout3 = torch.nn.Dropout(0.25)
         self.relu3 = torch.nn.ReLU(inplace=True)
         self.linear2 = torch.nn.Linear(64, 128)
-        self.linear3 = torch.nn.Linear(128, 31)
+        self.linear3 = torch.nn.Linear(128, 36)
         self.softmax = torch.nn.Softmax(dim=1)
     
     # Forward

@@ -12,7 +12,7 @@ num_times = 99
 
 # Specify words
 non_word = ["noise"]
-command_words = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+command_words = ["backward", "down", "eight", "five", "follow", "forward", "four", "go", "learn", "left", "nine", "no", "off", "on", "one", "right", "seven", "six", "stop", "three", "two", "up", "visual", "yes", "zero"]
 distraction_words = ["bed", "bird", "cat", "dog", "happy", "house", "marvin", "sheila", "tree", "wow"]
 detection_words = non_word + command_words + distraction_words
 
@@ -126,8 +126,8 @@ def prepare(dataset_folder, split):
             noise_arrays.append(sound)
     noise_data = np.concatenate(noise_arrays)
 
-    # Include placeholders for "Noise"
-    num_random = len(wav_paths)
+    # Include samples for "Noise"
+    num_random = int(len(wav_paths) / 30.0)
     for i in range(num_random):
         wav_paths.append("noise")
         targets.append("noise")
