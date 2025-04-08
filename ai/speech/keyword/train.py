@@ -37,6 +37,10 @@ test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuf
 # Inspect dataset?
 inspect = False
 if inspect:
+    for i in range(90):
+        path = train_data[0][i]
+        target = train_data[1][i]
+        print(path, dataset.classes[target])
     train_features, train_targets = next(iter(train_dataloader))
     for i in range(9):
         plt.subplot(3,3,i+1)

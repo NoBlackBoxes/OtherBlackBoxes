@@ -67,6 +67,12 @@ class custom(torch.utils.data.Dataset):
                     highfreq=8000,
                     appendEnergy=True,
                     winfunc=np.hamming)
+        #logmel = np.log(np.maximum(mfccs, 1e-10))
+
+        # Normalize features
+        mean = np.mean(mfccs)
+        std = np.std(mfccs)
+        mfccs = (mfccs - mean) / (std + 1e-10)
 
         # Fill buffer
         buffer[:mfccs.shape[0], :num_mfcc] = mfccs
