@@ -25,13 +25,22 @@ class custom(nn.Module):
             nn.MaxPool2d(kernel_size=(2, 2))
         )
 
-        self.pool = nn.AdaptiveAvgPool2d((2, 2))  # Controls final size for flatten
+        self.pool = nn.AdaptiveAvgPool2d((5, 5))  # Controls final size for flatten
 
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(128 * 2 * 2, 128),
+            nn.Linear(128 * 5 * 5, 512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Dropout(0.3),
+            nn.Linear(512, 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(256, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(0.2),
             nn.Linear(128, num_classes)
         )
 
