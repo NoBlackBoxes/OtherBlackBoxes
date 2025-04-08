@@ -1,42 +1,44 @@
-import torch
-import timm
+import torch.nn as nn
 
-# Define model (which extends the NN module)
-class custom(torch.nn.Module):
-
-    # Initialize
-    def __init__(self):
+class custom(nn.Module):
+    def __init__(self, num_classes=37):
         super(custom, self).__init__()
 
-        # Build model
-        self.conv1 = torch.nn.Conv2d(in_channels=1, out_channels=64, kernel_size=(20,8), stride=1, padding="same")
-        self.relu1 = torch.nn.ReLU(inplace=True)
-        self.maxpool1 = torch.nn.MaxPool2d(1,3)
-        self.conv2 = torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(10,4), stride=1, padding="same")
-        self.relu2 = torch.nn.ReLU(inplace=True)
-        self.maxpool2 = torch.nn.MaxPool2d(1,1)
-        self.flatten = torch.nn.Flatten()
-        self.linear3 = torch.nn.Linear(23232,32)
-        self.relu3 = torch.nn.ReLU(inplace=True)
-        self.linear4 = torch.nn.Linear(32, 128)
-        self.relu4 = torch.nn.ReLU(inplace=True)
-        self.linear5 = torch.nn.Linear(128, 37)
-    
-    # Forward
-    def forward(self, x):
-        b, c, h, w = x.shape
-        x = self.conv1(x)
-        x = self.relu1(x)
-        x = self.maxpool1(x)
-        x = self.conv2(x)
-        x = self.relu2(x)
-        x = self.maxpool2(x)
-        x = self.flatten(x)
-        x = self.linear3(x)
-        x = self.relu3(x)
-        x = self.linear4(x)
-        x = self.relu4(x)
-        x = self.linear5(x)
-        return x
+        self.conv_block1 = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=(20, 8), stride=1, padding="same"),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(1, 3))
+        )
 
-#FIN
+        self.conv_block2 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=(10, 4), stride=1, padding="same"),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(1, 2))
+        )
+
+        self.conv_block3 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=(5, 3), stride=1, padding="same"),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2))
+        )
+
+        self.pool = nn.AdaptiveAvgPool2d((2, 2))  # Controls final size for flatten
+
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(128 * 2 * 2, 128),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(128, num_classes)
+        )
+
+    def forward(self, x):
+        x = self.conv_block1(x)
+        x = self.conv_block2(x)
+        x = self.conv_block3(x)
+        x = self.pool(x)
+        x = self.classifier(x)
+        return x
