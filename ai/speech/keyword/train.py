@@ -24,15 +24,15 @@ dataset_folder = box_path + '/_tmp/dataset'
 
 # Prepare datasets
 train_data, test_data, noise_data = dataset.prepare(dataset_folder, 0.8)
-target_distribution = np.sum(train_data[1],axis=0)
+target_distribution = np.histogram(train_data[1], bins=range(0,len(dataset.classes)))[0]
 
 # Create datasets
 train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], noise=noise_data, augment=True)
 test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], noise=noise_data, augment=False)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=512, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=512, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True)
 
 # Inspect dataset?
 inspect = False
@@ -43,6 +43,7 @@ if inspect:
         feature = np.squeeze(train_features[i])
         target = train_targets[i]
         plt.imshow(feature, alpha=0.75)
+    plt.savefig("_tmp/inspect.png")
     plt.show()
 
 # Instantiate model
@@ -53,7 +54,6 @@ custom_model = model.custom()
 #model_path = model_path = box_path + '/_tmp/custom.pt'
 #custom_model = model.custom()
 #custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-
 
 # Set optimizer
 optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.001, betas=(0.9, 0.999), weight_decay=0.01)
@@ -80,8 +80,7 @@ def measure_accuracy(targets, guesses):
     preds = guesses.argmax(dim=1)
     correct = (preds == targets).sum().item()
     wrong = targets.size(0) - correct
-    noise = (targets == 0).sum().item()
-    return correct, wrong, noise
+    return correct, wrong
 
 # Define training
 def train(_dataloader, _model, _loss_function, _optimizer):
@@ -99,10 +98,10 @@ def train(_dataloader, _model, _loss_function, _optimizer):
         loss.backward()
         _optimizer.step()
 
-        if batch % 2 == 0:
+        if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
-            correct, wrong, noise = measure_accuracy(y, pred)
-            print(f"{correct} vs {wrong} : #{noise}, loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            correct, wrong = measure_accuracy(y, pred)
+            print(f"{correct} vs {wrong} : {100.0*correct/(correct+wrong):.2f}%, loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 # Define testing
 def test(_dataloader, _model, _loss_function):
@@ -117,11 +116,11 @@ def test(_dataloader, _model, _loss_function):
             X, y = X.to(device), y.to(device)
             pred = _model(X)
             test_loss += _loss_function(pred, y).item()
-            correct, wrong, noise = measure_accuracy(y, pred)
+            correct, wrong = measure_accuracy(y, pred)
             accum_correct = accum_correct + correct
             accum_wrong = accum_wrong + wrong
     avg_test_loss = test_loss / num_batches
-    print(f"Test Results: {accum_correct} vs {accum_wrong}\n Avg loss: {avg_test_loss:>8f}\n")
+    print(f"Test Results: {accum_correct} vs {accum_wrong} : {100.0 * accum_correct/(accum_correct+accum_wrong):.2f}%\n Avg loss: {avg_test_loss:>8f}\n")
 
 # TRAIN
 epochs = 100

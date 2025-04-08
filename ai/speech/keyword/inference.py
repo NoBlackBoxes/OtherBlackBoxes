@@ -94,7 +94,7 @@ try:
         predicted_idx = np.argmax(output)
         score = output[predicted_idx]
         if score > 0.75 and predicted_idx != 0:
-            print(f"DETECTED: {dataset.detection_words[predicted_idx]} : {score:.3f}")
+            print(f"DETECTED: {dataset.classes[predicted_idx]} : {score:.3f}")
 
 finally:
     # Shutdown

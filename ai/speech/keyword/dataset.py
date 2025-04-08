@@ -7,23 +7,24 @@ import matplotlib.pyplot as plt
 from python_speech_features import mfcc
 
 # Set parameters
+sample_rate = 16000
 num_mfcc = 32
 num_times = 99
+silence_reduction_factor = 0.01
+noise_addition_factor = 0.5
 
 # Specify words
-non_word = ["noise"]
+non_words = ["silence", "noise"]
 command_words = ["backward", "down", "eight", "five", "follow", "forward", "four", "go", "learn", "left", "nine", "no", "off", "on", "one", "right", "seven", "six", "stop", "three", "two", "up", "visual", "yes", "zero"]
 distraction_words = ["bed", "bird", "cat", "dog", "happy", "house", "marvin", "sheila", "tree", "wow"]
-detection_words = non_word + command_words + distraction_words
+classes = non_words + command_words + distraction_words
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
-    def __init__(self, wav_paths, targets, noise, transform=None, target_transform=None, augment=False):
+    def __init__(self, wav_paths, targets, noise, augment=False):
         self.wav_paths = wav_paths
         self.targets = targets
         self.noise = noise
-        self.transform = transform
-        self.target_transform = target_transform
         self.augment = augment
 
     def __len__(self):
@@ -33,34 +34,30 @@ class custom(torch.utils.data.Dataset):
         wav_path = self.wav_paths[idx]
         target = self.targets[idx]
 
-        # Load WAV        
-        if target == 0: # This is a "noise" example
-            start_frame = random.randint(0, len(self.noise)-16000)
-            sound = self.noise[start_frame:(start_frame+16000)]
+        # Load Sound (from WAV file or Noise/Silence)
+        if target == 0: # This is a "silence" example
+            start_frame = random.randint(0, len(self.noise)-sample_rate)
+            sound = self.noise[start_frame:(start_frame+sample_rate)] * silence_reduction_factor # Silence is attenuated "noise"
+        elif target == 1: # This is a "noise" example
+            start_frame = random.randint(0, len(self.noise)-sample_rate)
+            sound = self.noise[start_frame:(start_frame+sample_rate)]
         else:
             sound = load_wav(wav_path)
-            if len(sound) < 16000:
-                buffer = np.zeros(16000-len(sound))
+            if len(sound) < sample_rate:
+                # Pad short WAV files
+                buffer = np.zeros(sample_rate-len(sound))
                 sound = np.concatenate([sound, buffer])
             # Augment?
             if self.augment:
-                #'plt.subplot(1,3,1)
-                #'plt.plot(sound)
-                start_frame = random.randint(0, len(self.noise)-16000)
-                noise = self.noise[start_frame:(start_frame+16000)]
-                noise_multiplier = random.uniform(0.0, 0.5)
+                start_frame = random.randint(0, len(self.noise)-sample_rate)
+                noise = self.noise[start_frame:(start_frame+sample_rate)]
+                noise_multiplier = random.uniform(0.0, noise_addition_factor)
                 sound = sound + (noise_multiplier * noise)
-                #plt.subplot(1,3,2)
-                #plt.plot(noise)
-                #plt.subplot(1,3,3)
-                #plt.plot(sound)
-                #plt.savefig("test.png")
-                #plt.close()
 
         # Compute MFCCs
         buffer = np.zeros((num_times, num_mfcc), dtype=np.float32)
         mfccs = mfcc(sound, 
-                    samplerate=16000,
+                    samplerate=sample_rate,
                     winlen=0.025,
                     winstep=0.010,
                     numcep=num_mfcc,
@@ -80,7 +77,7 @@ class custom(torch.utils.data.Dataset):
         # Add channel dimension
         mfccs = np.expand_dims(mfccs, 0)
 
-        # Convert to Float32
+        # Convert to Float32 (input) and Long (target)
         mfccs = np.float32(mfccs)
         target = np.long(target)
 
@@ -127,8 +124,14 @@ def prepare(dataset_folder, split):
             noise_arrays.append(sound)
     noise_data = np.concatenate(noise_arrays)
 
+    # Include samples for "Silence"
+    num_random = int(len(wav_paths) / len(command_words))
+    for i in range(num_random):
+        wav_paths.append("silence")
+        targets.append("silence")
+
     # Include samples for "Noise"
-    num_random = int(len(wav_paths) / 30.0)
+    num_random = int(len(wav_paths) / len(command_words))
     for i in range(num_random):
         wav_paths.append("noise")
         targets.append("noise")
@@ -136,7 +139,7 @@ def prepare(dataset_folder, split):
     # Determine targets
     target_list = []
     for t in targets:
-        target_index = detection_words.index(t)
+        target_index = classes.index(t)
         target_list.append(target_index)
 
     # Convert to arrays
