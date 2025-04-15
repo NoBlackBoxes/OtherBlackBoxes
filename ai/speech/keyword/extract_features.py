@@ -1,10 +1,7 @@
 # Extract MEL features from audio snippet
 import os
 import numpy as np
-import wave
 import torch
-from python_speech_features import mfcc
-from python_speech_features import logfbank
 import matplotlib.pyplot as plt
 
 # Locals libs
@@ -25,22 +22,10 @@ sound = dataset.load_wav(wav_path)
 #plt.plot(sound)
 #plt.show()
 
-# Compute MFCCs
-buffer = np.zeros((dataset.num_times, dataset.num_mfcc), dtype=np.float32)
-mfccs = mfcc(sound, 
-            samplerate=16000,
-            winlen=0.025,
-            winstep=0.010,
-            numcep=dataset.num_mfcc,
-            nfilt=40,
-            nfft=512,
-            lowfreq=300,
-            highfreq=8000,
-            appendEnergy=True,
-            winfunc=np.hamming)
-buffer[:mfccs.shape[0], :dataset.num_mfcc] = mfccs
-mfccs = buffer.transpose()
-#plt.imshow(mfccs)
+# Compute MFCCs featurs
+features = dataset.process_sound(sound)
+print(features.shape)
+#plt.imshow(features)
 #plt.show()
 
 # Load model
@@ -56,7 +41,7 @@ custom_model.to(device)
 custom_model.eval()        # Put model in eval mode
 
 # Prepare network input
-input = torch.tensor(np.float32(mfccs))
+input = torch.tensor(np.float32(features))
 input = torch.unsqueeze(torch.unsqueeze(input, 0), 0)
 
 # Send to GPU

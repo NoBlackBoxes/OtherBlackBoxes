@@ -102,7 +102,7 @@ def train(_dataloader, _model, _loss_function, _optimizer):
         loss.backward()
         _optimizer.step()
 
-        if batch % 100 == 0:
+        if batch % 10 == 0:
             loss, current = loss.item(), batch * len(X)
             correct, wrong = measure_accuracy(y, pred)
             print(f"{correct} vs {wrong} : {100.0*correct/(correct+wrong):.2f}%, loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")

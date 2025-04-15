@@ -26,6 +26,7 @@ class custom(torch.utils.data.Dataset):
         self.targets = targets
         self.noise = noise
         self.augment = augment
+        self.mel_matrix = generate_mel_matrix()
 
     def __len__(self):
         return len(self.wav_paths)
@@ -54,40 +55,17 @@ class custom(torch.utils.data.Dataset):
                 noise_multiplier = random.uniform(0.0, noise_addition_factor)
                 sound = sound + (noise_multiplier * noise)
 
-        # Compute MFCCs
-        buffer = np.zeros((num_times, num_mfcc), dtype=np.float32)
-        mfccs = mfcc(sound, 
-                    samplerate=sample_rate,
-                    winlen=0.025,
-                    winstep=0.010,
-                    numcep=num_mfcc,
-                    nfilt=40,
-                    nfft=512,
-                    lowfreq=300,
-                    highfreq=8000,
-                    appendEnergy=True,
-                    winfunc=np.hamming)
-        #logmel = np.log(np.maximum(mfccs, 1e-10))
-
-        # Normalize features
-        mean = np.mean(mfccs)
-        std = np.std(mfccs)
-        mfccs = (mfccs - mean) / (std + 1e-10)
-
-        # Fill buffer
-        buffer[:mfccs.shape[0], :num_mfcc] = mfccs
-
-        # Transpose MFCCs (rows = Fr, cols = time)
-        mfccs = buffer.transpose()
+        # Compute Features
+        features = process_sound(sound, mel_matrix=self.mel_matrix)
         
         # Add channel dimension
-        mfccs = np.expand_dims(mfccs, 0)
+        features = np.expand_dims(features, 0)
 
         # Convert to Float32 (input) and Long (target)
-        mfccs = np.float32(mfccs)
+        features = np.float32(features)
         target = np.long(target)
 
-        return mfccs, target
+        return features, target
 
 # Load WAV
 def load_wav(path):
@@ -98,6 +76,58 @@ def load_wav(path):
         wav_obj.close()
         sound_f = sound.astype(np.float32) / 32768.0
         return sound_f
+
+# Generate mel matrix
+def generate_mel_matrix():
+    sample_rate = 16000
+    mel_fft_length = 512
+    mel_num_bins = 32
+
+    mel_matrix = np.zeros((mel_fft_length // 2 + 1, mel_num_bins))
+    freq_bins = np.linspace(0, sample_rate / 2, mel_fft_length // 2 + 1)
+    freq_bins_mel = 1127.0 * np.log(1.0 + freq_bins / 700.0)
+    mel_bins = np.linspace(1127.0 * np.log(1.0 + 60 / 700.0), 1127.0 * np.log(1.0 + 3800 / 700.0), mel_num_bins + 2)
+
+    for i in range(mel_num_bins):
+        lower = mel_bins[i]
+        center = mel_bins[i + 1]
+        upper = mel_bins[i + 2]
+        mel_matrix[:, i] = np.maximum(0, np.minimum((freq_bins_mel - lower) / (center - lower), (upper - freq_bins_mel) / (upper - center)))
+
+    return mel_matrix
+
+# Process sound
+def process_sound(sound, mel_matrix=None):
+    # Assumes 16000 samples at 16 kHz (1 second) of audio (1 channel)
+    # Float32, -1.0 to 1.0
+    num_samples = 16000
+    sample_rate = 16000
+
+    # Parameters
+    mel_window_length_samples = 400     # 25 ms
+    mel_hop_length_samples = 160        # 10 ms
+    mel_fft_length = 512
+    if mel_matrix is None:
+        mel_matrix = generate_mel_matrix()
+
+    # Compute spectrogram
+    frames = []
+    for i in range(0, 16000 - mel_window_length_samples + 1, mel_hop_length_samples):
+        frame = sound[i:i+mel_window_length_samples]
+        windowed = frame * np.hanning(mel_window_length_samples)
+        frames.append(np.abs(np.fft.rfft(windowed, mel_fft_length)))
+    spectrogram = np.stack(frames)
+
+    # Apply mel filters and take log
+    mel_spectrogram = np.dot(spectrogram, mel_matrix)
+    #log_mel_spectrogram = np.log(mel_spectrogram + 0.001)
+
+    # Normalise
+    mel_spectrogram -= np.mean(mel_spectrogram, axis=0, keepdims=True)
+    mel_spectrogram /= (3 * np.std(mel_spectrogram, axis=0, keepdims=True))
+
+    return mel_spectrogram.T
+
 
 # Load dataset
 def prepare(dataset_folder, split):
