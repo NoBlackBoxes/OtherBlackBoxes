@@ -24,15 +24,16 @@ dataset_folder = box_path + '/_tmp/dataset'
 
 # Prepare datasets
 train_data, test_data, noise_data = dataset.prepare(dataset_folder, 0.8)
-target_distribution = np.histogram(train_data[1], bins=range(0,len(dataset.classes)))[0]
+target_distribution = np.histogram(train_data[1], bins=range(0,len(dataset.classes)+1))[0]
+print(target_distribution)
 
 # Create datasets
 train_dataset = dataset.custom(wav_paths=train_data[0], targets=train_data[1], noise=noise_data, augment=True)
 test_dataset = dataset.custom(wav_paths=test_data[0], targets=test_data[1], noise=noise_data, augment=False)
 
 # Create data loaders
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=100, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=True)
 
 # Inspect dataset?
 inspect = False
@@ -60,7 +61,9 @@ custom_model = model.custom()
 #custom_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 
 # Set optimizer
-optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.001, betas=(0.9, 0.999), weight_decay=0.01)
+#optimizer = torch.optim.AdamW(custom_model.parameters(), lr=0.0001, betas=(0.9, 0.999), weight_decay=0.01)
+optimizer = torch.optim.Adam(custom_model.parameters(), lr=0.0005)
+scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[4000, 8000], gamma=0.2)
 
 # Get cpu or gpu device for training
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
@@ -87,7 +90,7 @@ def measure_accuracy(targets, guesses):
     return correct, wrong
 
 # Define training
-def train(_dataloader, _model, _loss_function, _optimizer):
+def train(_dataloader, _model, _loss_function, _optimizer, _scheduler):
     size = len(_dataloader.dataset)
     _model.train()
     for batch, (X, y) in enumerate(_dataloader):
@@ -101,11 +104,13 @@ def train(_dataloader, _model, _loss_function, _optimizer):
         _optimizer.zero_grad()
         loss.backward()
         _optimizer.step()
+        _scheduler.step()
 
-        if batch % 10 == 0:
+        if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
             correct, wrong = measure_accuracy(y, pred)
-            print(f"{correct} vs {wrong} : {100.0*correct/(correct+wrong):.2f}%, loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            step_count = scheduler._step_count
+            print(f"{step_count-2}: {correct} vs {wrong} : {100.0*correct/(correct+wrong):.2f}%, loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 # Define testing
 def test(_dataloader, _model, _loss_function):
@@ -127,10 +132,10 @@ def test(_dataloader, _model, _loss_function):
     print(f"Test Results: {accum_correct} vs {accum_wrong} : {100.0 * accum_correct/(accum_correct+accum_wrong):.2f}%\n Avg loss: {avg_test_loss:>8f}\n")
 
 # TRAIN
-epochs = 100
+epochs = 50
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader, custom_model, loss_fn, optimizer)
+    train(train_dataloader, custom_model, loss_fn, optimizer, scheduler)
     test(test_dataloader, custom_model, loss_fn)
 
     # Save interim model

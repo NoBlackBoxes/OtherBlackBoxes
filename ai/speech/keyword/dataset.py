@@ -4,20 +4,19 @@ import torch
 import wave
 import random
 import matplotlib.pyplot as plt
-from python_speech_features import mfcc
 
 # Set parameters
 sample_rate = 16000
-num_mfcc = 32
-num_times = 99
+num_mfcc = 40
+num_times = 49
 silence_reduction_factor = 0.01
-noise_addition_factor = 0.5
+noise_addition_factor = 0.1
 
 # Specify words
-non_words = ["silence", "noise"]
-command_words = ["backward", "down", "eight", "five", "follow", "forward", "four", "go", "learn", "left", "nine", "no", "off", "on", "one", "right", "seven", "six", "stop", "three", "two", "up", "visual", "yes", "zero"]
-distraction_words = ["bed", "bird", "cat", "dog", "happy", "house", "marvin", "sheila", "tree", "wow"]
-classes = non_words + command_words + distraction_words
+non_words = ["silence", "unknown"]
+command_words = ["yes", "no", "on", "off", "up", "down", "left", "right", "go", "stop"]
+distraction_words = ["backward", "eight", "five", "follow", "forward", "one", "four", "seven", "six", "learn", "nine", "bed", "bird", "cat", "dog", "happy", "house", "marvin", "sheila", "tree", "wow", "three", "two", "visual",  "zero"]
+classes = non_words + command_words
 
 # Define dataset class (which extends the utils.data.Dataset module)
 class custom(torch.utils.data.Dataset):
@@ -36,28 +35,40 @@ class custom(torch.utils.data.Dataset):
         target = self.targets[idx]
 
         # Load Sound (from WAV file or Noise/Silence)
-        if target == 0: # This is a "silence" example
-            start_frame = random.randint(0, len(self.noise)-sample_rate)
-            sound = self.noise[start_frame:(start_frame+sample_rate)] * silence_reduction_factor # Silence is attenuated "noise"
-        elif target == 1: # This is a "noise" example
-            start_frame = random.randint(0, len(self.noise)-sample_rate)
+        if target == 0: # Silence
+            start_frame = random.randint(0, len(self.noise) - sample_rate)
+            sound = self.noise[start_frame:(start_frame+sample_rate)] * silence_reduction_factor
+        elif target == 1: # Unknown
+            start_frame = random.randint(0, len(self.noise) - sample_rate)
             sound = self.noise[start_frame:(start_frame+sample_rate)]
         else:
             sound = load_wav(wav_path)
             if len(sound) < sample_rate:
-                # Pad short WAV files
-                buffer = np.zeros(sample_rate-len(sound))
+                buffer = np.zeros(sample_rate - len(sound))
                 sound = np.concatenate([sound, buffer])
+            
             # Augment?
             if self.augment:
-                start_frame = random.randint(0, len(self.noise)-sample_rate)
+                # 1. Random noise addition
+                start_frame = random.randint(0, len(self.noise) - sample_rate)
                 noise = self.noise[start_frame:(start_frame+sample_rate)]
                 noise_multiplier = random.uniform(0.0, noise_addition_factor)
                 sound = sound + (noise_multiplier * noise)
 
+                # 2. Random time shift
+                shift = random.randint(-int(0.1 * sample_rate), int(0.1 * sample_rate)) # shift up to +/- 10% of 1 second
+                if shift > 0:
+                    sound = np.pad(sound, (shift, 0), mode='constant')[:sample_rate]
+                elif shift < 0:
+                    sound = np.pad(sound, (0, -shift), mode='constant')[:sample_rate]
+
+                # 3. Random amplitude scaling
+                scale = random.uniform(0.8, 1.2)
+                sound = sound * scale
+
         # Compute Features
         features = process_sound(sound, mel_matrix=self.mel_matrix)
-        
+
         # Add channel dimension
         features = np.expand_dims(features, 0)
 
@@ -81,7 +92,7 @@ def load_wav(path):
 def generate_mel_matrix():
     sample_rate = 16000
     mel_fft_length = 512
-    mel_num_bins = 32
+    mel_num_bins = 40
 
     mel_matrix = np.zeros((mel_fft_length // 2 + 1, mel_num_bins))
     freq_bins = np.linspace(0, sample_rate / 2, mel_fft_length // 2 + 1)
@@ -104,8 +115,8 @@ def process_sound(sound, mel_matrix=None):
     sample_rate = 16000
 
     # Parameters
-    mel_window_length_samples = 400     # 25 ms
-    mel_hop_length_samples = 160        # 10 ms
+    mel_window_length_samples = 640     # 40 ms
+    mel_hop_length_samples = 320        # 20 ms
     mel_fft_length = 512
     if mel_matrix is None:
         mel_matrix = generate_mel_matrix()
@@ -144,12 +155,20 @@ def prepare(dataset_folder, split):
     targets = []
     for f in wav_folders:
         paths = os.listdir(f)
+        print(f"{os.path.basename(f)}: {len(paths)} files") 
         full_paths = []
         for path in paths:
             full_paths.append(f + '/' + path)
+        random.shuffle(full_paths) 
         num_paths = len(full_paths)
-        wav_paths.extend(full_paths)
-        targets.extend([os.path.basename(f)] * num_paths) # replicate this target label and append
+        if os.path.basename(f) in command_words:
+            wav_paths.extend(full_paths)
+            targets.extend([os.path.basename(f)] * num_paths)
+        else:
+            # Add a subset of unknown examples (do not unbalance the dataset)
+            subset_paths = num_paths // 10
+            wav_paths.extend(full_paths[:subset_paths])
+            targets.extend(["unknown"] * subset_paths)
 
     # Load all Noise files
     noise_arrays = []
@@ -165,12 +184,6 @@ def prepare(dataset_folder, split):
     for i in range(num_random):
         wav_paths.append("silence")
         targets.append("silence")
-
-    # Include samples for "Noise"
-    num_random = int(len(wav_paths) / len(command_words))
-    for i in range(num_random):
-        wav_paths.append("noise")
-        targets.append("noise")
 
     # Determine targets
     target_list = []
