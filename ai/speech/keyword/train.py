@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from torchsummary import summary
+from ptflops import get_model_complexity_info
 
 # Locals libs
 import dataset
@@ -54,6 +55,9 @@ if inspect:
 # Instantiate model
 importlib.reload(model)
 custom_model = model.custom()
+macs, params = get_model_complexity_info(custom_model, (1, dataset.num_mfcc, dataset.num_times), as_strings=True, print_per_layer_stat=True, verbose=True)
+print(f"MACs: {macs}")
+print(f"Params: {params}")
 
 ## Reload saved model
 #model_path = model_path = box_path + '/_tmp/custom.pt'

@@ -37,10 +37,7 @@ class custom(torch.utils.data.Dataset):
         # Load Sound (from WAV file or Noise/Silence)
         if target == 0: # Silence
             start_frame = random.randint(0, len(self.noise) - sample_rate)
-            sound = self.noise[start_frame:(start_frame+sample_rate)] * silence_reduction_factor
-        elif target == 1: # Unknown
-            start_frame = random.randint(0, len(self.noise) - sample_rate)
-            sound = self.noise[start_frame:(start_frame+sample_rate)]
+            sound = np.random.normal(0, 1e-4, sample_rate).astype(np.float32)
         else:
             sound = load_wav(wav_path)
             if len(sound) < sample_rate:

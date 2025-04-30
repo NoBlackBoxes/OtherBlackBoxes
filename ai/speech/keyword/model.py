@@ -5,43 +5,44 @@ class custom(nn.Module):
         super(custom, self).__init__()
 
         self.conv_block1 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=(10, 4), stride=(1,1), padding="same"),
+            nn.ZeroPad2d((1, 2, 4, 5)),  # (left, right, top, bottom)
+            nn.Conv2d(1, 64, kernel_size=(10, 4), stride=(2, 2), padding=0, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
         self.ds_conv_block1 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
-            nn.Conv2d(128, 128, kernel_size=1, bias=False),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
+            nn.Conv2d(64, 64, kernel_size=1, bias=False),
+            nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
         self.ds_conv_block2 = nn.Sequential(
-            nn.Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
-            nn.Conv2d(128, 128, kernel_size=1, bias=False),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
+            nn.Conv2d(64, 64, kernel_size=1, bias=False),
+            nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
         self.ds_conv_block3 = nn.Sequential(
-            nn.Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
-            nn.Conv2d(128, 128, kernel_size=1, bias=False),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
+            nn.Conv2d(64, 64, kernel_size=1, bias=False),
+            nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
         self.ds_conv_block4 = nn.Sequential(
-            nn.Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
-            nn.Conv2d(128, 128, kernel_size=1, bias=False),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
+            nn.Conv2d(64, 64, kernel_size=1, bias=False),
+            nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
         self.ds_conv_block5 = nn.Sequential(
-            nn.Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
-            nn.Conv2d(128, 128, kernel_size=1, bias=False),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding='same', groups=64, bias=False),
+            nn.Conv2d(64, 64, kernel_size=1, bias=False),
+            nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
@@ -49,7 +50,7 @@ class custom(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(128, 64),
+            nn.Linear(64, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.Dropout(0.3),
