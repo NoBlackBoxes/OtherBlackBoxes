@@ -15,6 +15,9 @@ Is the following address correct?
 You can use any named field (column) in the associated ODS file, such as {Number} or {String} fields.
 You can re-use the same fields, like {Number} and {Group ID}.
 
+You can force new lines by using two spaces at the end of a line.  
+Like this...  
+
 You can use Markdown (MD) tags to make things **bold** or ***italic***.
 
 ## You can probably also add headers/sub-headers

@@ -8,7 +8,7 @@ Test bulk email sending
 # Load environment file and variables
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(".env")
 libs_path = os.getenv('LIBS_PATH')
 base_path = os.getenv('BASE_PATH')
 sender = os.getenv('PROTONMAIL_USERNAME')
@@ -21,7 +21,8 @@ sys.path.append(libs_path)
 
 # Import libraries
 import os
-import numpy as np
+import time
+import random
 
 # Import modules
 import Email.template as Template
@@ -36,7 +37,7 @@ importlib.reload(Message)
 
 #----------------------------------------------------------
 # Debug
-debug = True
+debug = False
 
 # Specify paths
 template_path = base_path + "/template.md"
@@ -44,15 +45,16 @@ list_path = base_path + "/list.ods"
 
 # Load template
 template = Template.Template(template_path)
-print(template.fields)
 
 # Load list
-list = List.List(list_path, groupby="Group ID")
+list = List.List(list_path, sheet="Societies", groupby=None)
 
 # Report
+num_sent = 0
 for group in list.groups:
     message = Message.Message(template, group)
     message.generate()
+    status = False
     if debug:
         print(message.recipients)
         print(message.subject)
@@ -61,6 +63,12 @@ for group in list.groups:
         print('--')
         print(message.attachments)
         print('---')
+        status = True
     else:
-        message.send(sender, password)
+        status = message.send(sender, password)
+        delay = random.uniform(5, 15)  # Random Delay
+        time.sleep(delay)        
+    if status:
+        num_sent += 1
+print(f"{num_sent} emails sent.")
 # FIN

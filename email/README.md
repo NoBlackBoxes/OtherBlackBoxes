@@ -1,5 +1,4 @@
 # Email
-
 Instructions to generate and send automated emails
 
 ## Create a Virtual Environment
@@ -29,7 +28,7 @@ PROTONMAIL_SMTP_TOKEN='??????'
 ```
 
 ## Recipient (Group) List
-Create an ODS file with the following format with columns with field names, should have "First Name" and must have "Email".
+Create an ODS file with the following format with columns with field names, should have "First Name" and must have "Email". Can be split into multiple sheets, but must update Python with appropriate "sheet" name.
 
 ## Template
 Create a Markdown-style template (template.md)

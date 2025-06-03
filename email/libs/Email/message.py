@@ -107,8 +107,15 @@ class Message:
         smtp.ehlo()  # send the extended hello to our server
         smtp.starttls()  # tell server we want to communicate with TLS encryption
         smtp.login(sender, password)
-        smtp.sendmail(sender, self.recipients, email.as_string())
-        print(f"Sent ({self.subject})")
-        return
+        try:
+            smtp.sendmail(sender, self.recipients, email.as_string())
+            print(f"Sent ({self.subject} : {self.recipients})")
+            return True
+        except smtplib.SMTPException as e:
+            print(f"SMTP Error: {e} ({self.subject} : {self.recipients})")
+            return False
+        except Exception as e:
+            print(f"General Error: {e} ({self.subject} : {self.recipients})")
+            return False
 
 # FIN

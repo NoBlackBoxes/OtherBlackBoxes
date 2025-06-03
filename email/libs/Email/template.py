@@ -29,7 +29,10 @@ class Template:
             body_stop += 1
         for i in range(body_start, body_stop):
             self.body.append(template_lines[i])
-        self.attachments = template_lines[body_stop+1][:-1].split(',')
+        if template_lines[body_stop+1].startswith("None"):
+            self.attachments = []
+        else:
+            self.attachments = template_lines[body_stop+1][:-1].split(',')
         # Extract Fields
         self.parse_fields(self.subject)
         for line in self.body:
