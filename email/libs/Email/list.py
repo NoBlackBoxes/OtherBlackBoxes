@@ -17,11 +17,15 @@ class List:
         return
 
     def parse_list(self, list_path, sheet, groupby):
-        frame = pd.read_excel(list_path, sheet_name=sheet, engine="odf")
+        if sheet:
+            frame = pd.read_excel(list_path, sheet_name=sheet, engine="odf")
+        else:
+            frame = pd.read_excel(list_path, engine="odf")
         if groupby:
             self.groups = frame.groupby(groupby, as_index=True)
         else:
             self.groups = frame.groupby("Email", as_index=True)
+        print(frame)
         return
 
 # FIN
