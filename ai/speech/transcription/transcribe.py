@@ -4,7 +4,7 @@ from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import wave
 
 # Specify audio (WAV) path AND OTHER PARAMETERS
-wav_path = "_tmp/test.wav"
+wav_path = "_tmp/test_16k.wav"
 sample_rate = 16000
 max_chunk_size = sample_rate * 30
 buffer_size = 1600
@@ -12,6 +12,10 @@ avg_pools = 5
 sr_threshold = 0.2
 freq_bins = np.fft.fftfreq(buffer_size, 1.0/sample_rate)[1:]
 output_path = "_tmp/transcript.csv"
+eps = 1e-12
+
+# FFMPEG sample rate conversion and loudness normalization
+# ffmpeg -i test.wav -ac 1 -ar 16000 -sample_fmt s16 -af "loudnorm" test_16k.wav
 
 # ----------
 def find_silence(audio):
@@ -41,7 +45,7 @@ def find_silence(audio):
                 voice_energy += energy_per_freq[f]
 
         # Compute speech ratio
-        speech_ratio = voice_energy/total_energy
+        speech_ratio = voice_energy/(total_energy + eps)
 
         # Update average
         rolling_average = ((rolling_average * (avg_pools - 1)) + speech_ratio) / avg_pools
@@ -95,11 +99,10 @@ while True:
     wav_file.setpos(read_position)
 
     # Extract features
-    inputs = processor(float_data[:silence_offset], sampling_rate=sample_rate, return_tensors="pt")
-    input_features = inputs.input_features
+    inputs = processor(float_data[:silence_offset], sampling_rate=sample_rate, return_tensors="pt", return_attention_mask=True)
 
     # Generate IDs
-    generated_ids = model.generate(inputs=input_features, max_new_tokens=444)
+    generated_ids = model.generate(input_features=inputs.input_features, max_new_tokens=444, attention_mask=inputs.attention_mask, task="transcribe", language="en")
 
     # Transcribe
     transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
