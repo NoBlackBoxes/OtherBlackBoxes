@@ -1,12 +1,19 @@
 # AI : speech : transcription
+Transcribe am audio file
 
-Transcribe audio file
-
-## Install requirements
-
-- Activate relevant virutal environment, then...
-
+## Extract Audio from Video and Convert to 16 kHz, Mono, S16, WAV
 ```bash
-pip install torch transformers
+ffmpeg -y -i video.mkv -ac 1 -ar 16000 -sample_fmt s16 -af "loudnorm" audio_16k.wav
 ```
 
+## Convert Audio (MP3, WAV, etc.) to 16 kHz, Mono, S16, WAV
+```bash
+ffmpeg -y -i audio.mp3 -ac 1 -ar 16000 -sample_fmt s16 -af "loudnorm" audio_16k.wav
+```
+
+## Install requirements
+- Create and Activate a relevant virtual environment, then...
+
+```bash
+pip install torch transformers soundfile
+```
